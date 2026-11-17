@@ -612,12 +612,18 @@ copy .env.example .env
 python run.py
 ```
 
-访问：
+访问（**统一用 `127.0.0.1`，不要用 `localhost`**，原因见下）：
 
-- 系统首页 http://localhost:8001/
-- 管理后台 http://localhost:8001/admin
-- Swagger http://localhost:8001/docs ｜ ReDoc http://localhost:8001/redoc
-- 健康检查 http://localhost:8001/health
+- 系统首页 <http://127.0.0.1:8001/>
+- 管理后台 <http://127.0.0.1:8001/admin>
+- Swagger <http://127.0.0.1:8001/docs> ｜ ReDoc <http://127.0.0.1:8001/redoc>
+- 健康检查 <http://127.0.0.1:8001/health>
+
+> **高德 Key 的域名白名单必须与访问地址一致。**
+> 高德把 `localhost` 和 `127.0.0.1` 当成两个不同域名：白名单只填了 `127.0.0.1` 时，
+> 用 `localhost` 打开不报页面错误，但浏览器控制台会打出
+> `FlyDataAuthTask error: INVALID_USER_DOMAIN`，地图能力随之失效。
+> 最省事的做法是在高德控制台把两个都加进白名单；只加一个的话，就必须用对应的那个地址访问。
 
 ### 首次使用
 
@@ -671,6 +677,8 @@ python run.py
 | 11 | 无坐标房源地图空白 | 建图函数直接 return | 空态提示「该房源暂无坐标」 |
 | 12 | 详情页周边地图一直「加载中」 | `ensureNearbyMap` 只重试不加载 SDK；没进过「地图找房」时 SDK 从未注入 | 建图前主动调一次 `loadAmapSdk()`（幂等） |
 | 13 | 有 POI 列表但地图上没有标记 | 周边数据先于 SDK 就绪，`renderNearbyPois` 因 `_dpMap` 尚未创建被跳过 | 地图 `complete` 回调里补画一次 |
+| 14 | 问答页「涉及 N 套房源」的地图空白 | `renderChatMap` 同样是只重试不加载 SDK，且重试无上限 | 主动 `loadAmapSdk()`，重试上限 30 次后打日志 |
+| 15 | 用 `localhost` 打开时地图能力异常 | 高德把 `localhost` / `127.0.0.1` 视为两个域名，白名单只填了后者 | 控制台报 `INVALID_USER_DOMAIN`；统一用 `127.0.0.1`，或白名单两个都加 |
 
 三条结论：
 

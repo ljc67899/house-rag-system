@@ -1301,7 +1301,19 @@ const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
           const pois = (messages.value[idx] && messages.value[idx].externalPois) || [];
           const el = document.getElementById('chatMap-' + idx);
           if (!el || (!list.length && !pois.length)) return;
-          if (typeof AMap === 'undefined') { setTimeout(() => renderChatMap(idx), 500); return; }
+          if (typeof AMap === 'undefined') {
+            // 同 ensureNearbyMap：用户可能从首页直接进问答页，SDK 尚未注入，
+            // 只重试不加载会永远停在空白地图。这里主动拉起并限制重试次数。
+            loadAmapSdk();
+            const tries = (parseInt(el.dataset.mapRetry || '0', 10) || 0) + 1;
+            el.dataset.mapRetry = String(tries);
+            if (tries <= 30) {
+              setTimeout(() => renderChatMap(idx), 500);
+            } else {
+              console.warn('地图 SDK 未就绪，停止重试：请检查 AMAP_JS_KEY 与高德控制台的域名白名单');
+            }
+            return;
+          }
           // 切 tab 回来时 v-if 刚重建 DOM，浏览器可能还没完成 layout，容器是 0×0。
           // 此刻 new AMap.Map 会建出一个 0×0 画布，且之后不会自愈——表现就是
           // 「卡片标题都在、地图区域一片空白」。所以等容器真有尺寸再初始化。
