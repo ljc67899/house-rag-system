@@ -1,0 +1,474 @@
+    /* ============ 模块 B：用户画像与协同过滤 ============ */
+    .profile-card {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      background: linear-gradient(135deg, #f0fff7, #fff8f0);
+      border: 1px solid #d8f3e5; border-radius: 12px; padding: 16px 20px; margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .profile-left { display: flex; align-items: center; gap: 14px; }
+    .profile-avatar {
+      width: 52px; height: 52px; border-radius: 50%; background: #00ae66; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 700; box-shadow: 0 4px 10px rgba(0,174,102,.25);
+    }
+    .profile-name { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .profile-tag {
+      font-size: 11px; font-weight: 500; color: #00ae66; background: #e6f7ee;
+      padding: 2px 8px; border-radius: 10px;
+    }
+    /* 画像卡片中的角色标识：与当前登录账号的权限保持一致 */
+    .profile-role {
+      font-size: 11px; font-weight: 600; line-height: 1;
+      padding: 3px 9px; border-radius: 10px; border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .profile-role.role-admin { color: #00ae66; background: #e8f8f0; border-color: #bfeeda; }
+    .profile-role.role-user { color: #5a6b63; background: #eef2f5; border-color: #e0e7e4; }
+    .profile-admin-note { margin-top: 4px; font-size: 12px; color: #96a49d; }
+    .profile-behaviors { display: flex; gap: 12px; margin-top: 6px; font-size: 12px; color: #888; flex-wrap: wrap; }
+    .profile-right { display: flex; flex-direction: column; gap: 6px; }
+    .profile-pref { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .pp-label { color: #999; }
+    .pp-chip {
+      background: #fff; border: 1px solid #e0e0e0; color: #555;
+      padding: 1px 8px; border-radius: 10px; font-size: 11px;
+    }
+    .rec-strategy {
+      font-size: 13px; color: #666; background: #fafafa; border: 1px dashed #e0e0e0;
+      border-radius: 8px; padding: 8px 14px; margin-bottom: 16px;
+    }
+    .rec-strategy b { color: #00ae66; }
+
+    /* ============ 模块 A：机器学习预测 ============ */
+    .ml-result {
+      margin-top: 16px; background: linear-gradient(135deg, #f5f8ff, #f0f7ff);
+      border: 1px solid #d8e6ff; border-radius: 12px; padding: 16px 18px;
+    }
+    .ml-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .ml-title { font-size: 15px; font-weight: 700; }
+    .ml-title small { font-size: 11px; font-weight: 400; color: #999; margin-left: 6px; }
+    .ml-badge {
+      background: #00ae66; color: #fff; font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 12px;
+    }
+    .ml-price { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .ml-price-value { font-size: 34px; font-weight: 800; color: #1a73e8; }
+    .ml-price-unit { font-size: 16px; color: #666; }
+    .ml-price-range { font-size: 13px; color: #888; }
+    .ml-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .ml-metric {
+      background: #fff; border-radius: 8px; padding: 8px; text-align: center;
+      border: 1px solid #eef3ff;
+    }
+    .ml-metric .mm-v { font-size: 16px; font-weight: 700; color: #1a73e8; }
+    .ml-metric .mm-k { font-size: 11px; color: #999; margin-top: 2px; }
+    .ml-error { margin-top: 12px; font-size: 13px; color: #e06c00; background: #fff7ec; padding: 10px 14px; border-radius: 8px; }
+
+    /* ============ 模块 C：数据可视化大屏 ============ */
+    .dash-header {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #edf1ee;
+    }
+    .dash-title {
+      font-size: 20px; font-weight: 800; color: #1c2b24;
+      display: flex; align-items: center; gap: 8px; letter-spacing: -.2px;
+    }
+    .dash-title svg.ic { color: #00ae66; font-size: 20px; }
+    .dash-sub { font-size: 12px; color: #98a49f; margin-top: 5px; }
+    .dash-meta { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #98a49f; white-space: nowrap; }
+    .dash-meta em {
+      font-style: normal; color: #02814c; background: #f1f8f4;
+      border: 1px solid #e0efe7; border-radius: 999px; padding: 3px 9px;
+    }
+    .dash-loading { text-align: center; color: #999; padding: 40px 0; }
+    .dash-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+    .dash-card {
+      display: grid; grid-template-columns: 40px 1fr; grid-template-rows: auto auto;
+      column-gap: 13px; align-items: center;
+      background: #fff; border-radius: 12px; padding: 14px 16px;
+      border: 1px solid #edf1ee; box-shadow: 0 1px 2px rgba(16,42,32,.04);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .dash-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(16,42,32,.08); }
+    .dash-card .dc-icon {
+      grid-row: 1 / span 2; width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: #f1f8f4; color: #00ae66; font-size: 19px;
+    }
+    .dash-card .dc-value {
+      font-size: 25px; font-weight: 800; color: #16241d; line-height: 1.15;
+      letter-spacing: -.5px; font-variant-numeric: tabular-nums;
+    }
+    .dash-card .dc-value span {
+      font-size: 12px; font-weight: 600; color: #98a49f; margin-left: 3px; letter-spacing: 0;
+    }
+    .dash-card .dc-label { font-size: 12px; color: #8a938e; }
+    .dash-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    /* 9 张图两列排会空出一格：最后一张（小区均价 TOP10）通栏，横向条形图通栏反而更好读 */
+    .dash-grid > .chart-box:last-child { grid-column: 1 / -1; }
+    .dash-grid > .chart-box:last-child .chart { height: 320px; }
+    .chart-box {
+      background: #fff; border-radius: 12px; padding: 14px 16px 8px;
+      border: 1px solid #edf1ee; box-shadow: 0 1px 2px rgba(16,42,32,.04);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .chart-box:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(16,42,32,.08); }
+    .chart-title {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 13.5px; font-weight: 700; margin-bottom: 6px; color: #22332b;
+    }
+    .chart-title::before {
+      content: ''; width: 3px; height: 13px; border-radius: 2px;
+      background: #00ae66; flex: none;
+    }
+    .chart-title svg.ic { color: #00ae66; font-size: 15px; }
+    .chart-title .ct-note {
+      margin-left: auto; font-size: 11px; font-weight: 500; color: #98a49f;
+    }
+    .chart { width: 100%; height: 272px; }
+    .chart-lg { height: 360px; }
+    /* 走势图时间范围切换：默认近 3 年，让「现在 → 未来 12 个月」占满半屏 */
+    .trend-range { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; }
+    .trend-range button {
+      border: 1px solid #e6ebe8; background: #fff; color: #7d8b85;
+      font-size: 11px; font-family: inherit; line-height: 1;
+      padding: 5px 9px; border-radius: 12px; cursor: pointer;
+      transition: all .15s ease;
+    }
+    .trend-range button:hover { border-color: #00ae66; color: #00ae66; }
+    .trend-range button.active {
+      background: #eaf8f0; border-color: #b7e6cd; color: #00875a; font-weight: 600;
+    }
+    .trend-range-text {
+      font-size: 11px; color: #9aa8a1; margin: -2px 0 4px; padding-left: 10px;
+    }
+    @media (max-width: 760px) {
+      .dash-cards { grid-template-columns: repeat(2, 1fr); }
+      .dash-header { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ============ 通用面板 ============ */
+    .panel {
+      background: #fff; border-radius: 12px; padding: 16px;
+      border: 1px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .panel-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #444; }
+    .panel-title small { font-size: 12px; color: #999; font-weight: 400; }
+
+    /* ============ 模块 E：房价走势时间序列 ============ */
+    .trend-toolbar { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .trend-select {
+      padding: 9px 14px; border: 1px solid #e0e0e0; border-radius: 8px;
+      font-size: 13px; min-width: 240px; background: #fff;
+    }
+    .trend-select:focus { outline: none; border-color: #00ae66; }
+    .trend-body { display: flex; flex-direction: column; gap: 14px; }
+    .trend-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .tm-item {
+      background: #fff; border-radius: 12px; padding: 14px; text-align: center;
+      border: 1px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .tm-item .tm-v { font-size: 22px; font-weight: 800; color: #333; }
+    .tm-item .tm-v.up { color: #e11d48; }
+    .tm-item .tm-v.down { color: #00ae66; }
+    .tm-item .tm-k { font-size: 12px; color: #999; margin-top: 4px; }
+
+    /* ============ 房源管理后台 ============ */
+    .manage-toolbar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      background: #fff; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+      border: 1px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .manage-search {
+      flex: 1 1 260px; min-width: 200px; height: 36px; padding: 0 12px;
+      border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px;
+      box-sizing: border-box; font-family: inherit;
+    }
+    .manage-search:focus { outline: none; border-color: #00ae66; }
+    .manage-toolbar .btn-primary,
+    .manage-toolbar .btn-outline {
+      height: 36px; padding: 0 16px; font-size: 13px; white-space: nowrap;
+      display: inline-flex; align-items: center; border-radius: 8px; cursor: pointer;
+    }
+    .manage-count { font-size: 13px; color: #999; margin-left: auto; }
+
+    .manage-table-wrap {
+      background: #fff; border-radius: 12px; overflow: auto;
+      border: 1px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .manage-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 760px; }
+    .manage-table thead th {
+      text-align: left; padding: 12px 14px; background: #fafafa;
+      font-weight: 600; color: #666; font-size: 12px; white-space: nowrap;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .manage-table tbody td {
+      padding: 11px 14px; border-bottom: 1px solid #f5f5f5;
+      color: #333; vertical-align: middle;
+    }
+    .manage-table tbody tr:hover { background: #fafffc; }
+    .manage-table tbody tr:last-child td { border-bottom: none; }
+    .manage-table .mono { font-variant-numeric: tabular-nums; color: #666; white-space: nowrap; }
+    .manage-table .cell-title {
+      max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .manage-table .cell-actions { white-space: nowrap; }
+    .manage-empty { padding: 40px; text-align: center; color: #999; font-size: 13px; }
+
+    .btn-mini {
+      border: 1px solid #d8f3e5; background: #f0fff7; color: #00ae66;
+      border-radius: 6px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+      margin-right: 6px; transition: all .15s; font-family: inherit;
+    }
+    .btn-mini:hover { background: #00ae66; color: #fff; border-color: #00ae66; }
+    .btn-mini.danger { border-color: #f8cdd5; background: #fff5f7; color: #e11d48; }
+    .btn-mini.danger:hover { background: #e11d48; color: #fff; border-color: #e11d48; }
+
+    .manage-page-info { font-size: 13px; color: #666; margin: 0 12px; }
+
+    /* 管理员登录卡片 */
+    .admin-login-wrap {
+      display: flex; justify-content: center; padding: 60px 20px;
+    }
+    .admin-login-card {
+      width: 100%; max-width: 400px; background: #fff; border-radius: 16px;
+      padding: 36px 32px 30px; box-shadow: 0 6px 28px rgba(0,0,0,.08);
+      border: 1px solid #f0f0f0; text-align: center;
+    }
+    .admin-login-icon { font-size: 40px; margin-bottom: 10px; }
+    .admin-login-card h3 { font-size: 19px; font-weight: 700; color: #222; margin-bottom: 6px; }
+    .admin-login-desc { font-size: 13px; color: #999; margin-bottom: 22px; line-height: 1.6; }
+    .admin-login-field { text-align: left; margin-bottom: 14px; }
+    .admin-login-field label {
+      display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500;
+    }
+    .admin-login-field input {
+      width: 100%; height: 42px; padding: 0 12px; border: 1px solid #e5e5e5;
+      border-radius: 8px; font-size: 14px; box-sizing: border-box; font-family: inherit;
+    }
+    .admin-login-field input:focus { outline: none; border-color: #00ae66; }
+    .admin-login-error {
+      font-size: 13px; color: #e11d48; background: #fff5f7; border-radius: 6px;
+      padding: 8px 10px; margin-bottom: 12px; text-align: left;
+    }
+    .admin-login-btn {
+      width: 100%; height: 44px; border-radius: 8px; font-size: 15px; font-weight: 600;
+      border: none; cursor: pointer; margin-top: 4px;
+    }
+    .admin-login-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .admin-login-tip { font-size: 12px; color: #bbb; margin-top: 14px; line-height: 1.6; }
+
+    .admin-badge {
+      display: inline-flex; align-items: center; font-size: 12px; font-weight: 400;
+      background: #e8f8f0; color: #00ae66; border-radius: 20px;
+      padding: 3px 12px; margin-left: 10px; vertical-align: middle;
+    }
+    .admin-logout-btn {
+      float: right; font-size: 13px; color: #666; background: #fff;
+      border: 1px solid #e0e0e0; border-radius: 8px; padding: 6px 14px;
+      cursor: pointer; transition: all .15s; margin-top: 2px; font-family: inherit;
+    }
+    .admin-logout-btn:hover { color: #e11d48; border-color: #f8cdd5; background: #fff5f7; }
+
+    /* 修改密码 */
+    .pwd-tip { font-size: 12px; color: #bbb; margin-top: 10px; text-align: center; }
+    .admin-tag {
+      display: inline-block; font-size: 11px; font-weight: 500;
+      background: #e8f8f0; color: #00ae66; border-radius: 10px;
+      padding: 1px 8px; margin-left: 6px; vertical-align: middle;
+    }
+
+    /* 房源表单弹窗：三段式（固定头部 / 滚动主体 / 固定操作栏） */
+    .house-form-modal {
+      width: 720px;
+      max-width: 94vw;
+      max-height: 86vh;
+      padding: 0;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(10, 28, 22, 0.3);
+    }
+    .hf-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fff4f4;
+      border: 1px solid #ffdcdc;
+      color: #c92a2a;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .hf-error svg.ic { flex: 0 0 auto; color: #e5484d; }
+    .hf-head {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 28px 18px;
+      border-bottom: 1px solid #eef2f0;
+      background: #fff;
+    }
+    .hf-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1b2b24;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .hf-id {
+      font-size: 12px;
+      font-weight: 600;
+      color: #00ae66;
+      background: #eaf9f1;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-family: ui-monospace, Consolas, monospace;
+    }
+    .hf-sub {
+      margin: 6px 0 0;
+      font-size: 12.5px;
+      color: #8a9a93;
+      line-height: 1.6;
+    }
+    .hf-close {
+      flex: 0 0 auto;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 50%;
+      background: #f4f7f5;
+      color: #6b7c75;
+      cursor: pointer;
+      transition: background .18s, color .18s;
+    }
+    .hf-close:hover { background: #e8efeb; color: #1b2b24; }
+    .hf-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 4px 28px 6px;
+      scrollbar-gutter: stable;
+    }
+    .hf-body::-webkit-scrollbar { width: 8px; }
+    .hf-body::-webkit-scrollbar-thumb {
+      background: #dfe7e3;
+      border-radius: 4px;
+    }
+    .hf-body::-webkit-scrollbar-thumb:hover { background: #cbd8d2; }
+    .hf-body::-webkit-scrollbar-track { background: transparent; }
+    .hf-section { padding: 18px 0 16px; border-bottom: 1px solid #eef2f0; }
+    .hf-section:last-child { border-bottom: none; padding-bottom: 8px; }
+    .hf-section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #2f3d38;
+    }
+    .hf-section-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, #00ae66, #7ee2b0);
+    }
+    .hf-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px 20px;
+    }
+    .hf-grid .form-item { margin-bottom: 0; }
+    .hf-grid .form-item.full { grid-column: 1 / -1; }
+    .hf-grid .form-item label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #5d6b65;
+    }
+    .hf-grid .form-item .req { color: #e11d48; margin-left: 2px; }
+    .hf-grid .form-item input,
+    .hf-grid .form-item select {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid #e3e9e6;
+      border-radius: 10px;
+      font-size: 13.5px;
+      color: #1b2b24;
+      background: #fff;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .hf-grid .form-item select { padding-right: 30px; cursor: pointer; }
+    .hf-grid .form-item input::placeholder { color: #b3bfb9; }
+    .hf-grid .form-item input:focus,
+    .hf-grid .form-item select:focus {
+      outline: none;
+      border-color: #00ae66;
+      box-shadow: 0 0 0 3px rgba(0, 174, 102, .12);
+    }
+    .hf-foot {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 28px;
+      border-top: 1px solid #eef2f0;
+      background: #fcfdfc;
+    }
+    .hf-foot-hint { font-size: 12px; color: #9aa7a1; }
+    .hf-foot-hint .req { color: #e11d48; }
+    .hf-foot-actions { display: flex; gap: 10px; }
+    .hf-foot-actions .btn-primary,
+    .hf-foot-actions .btn-outline {
+      height: 40px;
+      padding: 0 24px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .hf-foot-actions .btn-primary { background: #00ae66; color: #fff; border: none; }
+    .hf-foot-actions .btn-primary:hover { background: #009858; }
+    .hf-foot-actions .btn-primary:disabled { background: #9fd9bd; cursor: not-allowed; }
+    .hf-foot-actions .btn-outline {
+      background: #fff;
+      color: #5d6b65;
+      border: 1px solid #e3e9e6 !important;
+    }
+    .hf-foot-actions .btn-outline:hover { background: #f6faf8; border-color: #cfdcd6 !important; }
+
+    @media (max-width: 640px) {
+      .hf-grid { grid-template-columns: 1fr; }
+      .hf-head { padding: 18px 18px 14px; }
+      .hf-body { padding: 0 18px 4px; }
+      .hf-section-title { font-size: 13px; }
+      .hf-foot {
+        padding: 12px 18px;
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .hf-foot-hint { display: none; }
+      .hf-foot-actions .btn-primary,
+      .hf-foot-actions .btn-outline { flex: 1; }
+      .manage-count { margin-left: 0; }
+    }
+

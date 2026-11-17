@@ -1,0 +1,73 @@
+# RAG 检索评测报告
+
+- 检索集: `data/eval/retrieval_set.json`（top_k = 5）
+- 抽取集: `data/eval/extraction_set.json`
+- 判定函数: `app.services.house_filters.eval_constraints`（线上/评测同一份）
+
+## literal 层（15 题，纯小区名：只考命中与名次）
+
+| 模式 | recall@5 | recall@1 | MRR | nDCG@5 | precision@5 |
+|---|---|---|---|---|---|
+| dense | 1.000 | 1.000 | 1.000 | 1.000 | 0.920 |
+| sparse | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| hybrid_nofilter | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| hybrid_no_div | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| hybrid | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+
+## mixed 层（20 题，小区名 + 户型/价格：专测约束排序）
+
+| 模式 | 小区 recall@1 | 小区 recall@5 | 约束满足@1 | **strict@1** | distinct@5 |
+|---|---|---|---|---|---|
+| dense | 1.000 | 1.000 | 0.300 | **0.300** | 0.340 |
+| sparse | 1.000 | 1.000 | 0.850 | **0.850** | 0.200 |
+| hybrid_nofilter | 1.000 | 1.000 | 0.550 | **0.550** | 0.230 |
+| hybrid_no_div | 1.000 | 1.000 | 1.000 | **1.000** | 0.200 |
+| hybrid | 1.000 | 1.000 | 1.000 | **1.000** | 0.200 |
+
+## semantic 层（15 题，无小区名锚点）
+
+| 模式 | 约束满足@1 | 约束满足@5 | distinct@5 |
+|---|---|---|---|
+| dense | 0.556 | 1.000 | 0.947 |
+| sparse | 0.778 | 1.000 | 0.907 |
+| hybrid_nofilter | 0.889 | 1.000 | 1.000 |
+| hybrid_no_div | 1.000 | 1.000 | 0.947 |
+| hybrid | 1.000 | 1.000 | 1.000 |
+
+## 总览
+
+| 模式 | strict@1（literal+mixed 35 题） | 约束满足@1 |
+|---|---|---|
+| dense | 0.600 | 0.379 |
+| sparse | 0.914 | 0.828 |
+| hybrid_nofilter | 0.743 | 0.655 |
+| hybrid_no_div | 1.000 | 1.000 |
+| hybrid | 1.000 | 1.000 |
+
+- 注 1：题目自带 filters，评测直接喂给检索，所以这一层只衡量排序，不掺抽取。
+- 注 2：`hybrid` 与 `hybrid_nofilter` 在 mixed 层的差值 = 「约束排序」本身的贡献。
+- 注 3：strict@1 = 第一名「命中点名小区 **且** 约束全中」，判定调线上同一函数。
+- 注 4：语料 288 小区 / 841 房源，一小区多套房，recall@k 容易饱和，看 recall@1 与 strict@1。
+
+## 条件抽取评测（纯正则层）
+
+- 整题全对: 27/27（1.000）
+- 字段准确率: 58/58（1.000）
+
+## Supervisor 路由评测
+
+- 准确率: 0.975 (39/40)
+
+| 期望 \ 实际 | 次数 |
+|---|---|
+| analytics → analytics | 10 |
+| house_search → house_search | 11 |
+| hybrid → analytics | 1  ← 错 |
+| hybrid → hybrid | 8 |
+| knowledge → knowledge | 10 |
+
+### 路由错误明细
+
+| id | 问题 | 期望 | 实际 | 依据 |
+|---|---|---|---|---|
+| T036 | 望京那边怎么样 | hybrid | analytics | LLM 分类 |

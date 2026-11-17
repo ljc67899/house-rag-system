@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安居乐 · 管理后台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ae66' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.2 10.6 12 3.4l8.8 7.2'/%3E%3Cpath d='M5.4 9.6V20h13.2V9.6'/%3E%3Cpath d='M9.6 20v-5.4h4.8V20'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#101c17">
+  <link rel="stylesheet" href="/static/admin/admin.css?v=20261021j">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+</head>
+<body>
+<!-- 图标精灵：后台自己的图标集，不依赖前台 index.html -->
+<svg class="icon-sprite" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="a-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 10.6 12 3.4l8.8 7.2"/><path d="M5.4 9.6V20h13.2V9.6"/><path d="M9.6 20v-5.4h4.8V20"/></symbol>
+  <symbol id="a-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></symbol>
+  <symbol id="a-building" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 20.4V5.8l7.6-2.6v17.2"/><path d="M11.8 20.4h8V10l-8-4.2"/><path d="M7.2 8.4h1.8M7.2 12h1.8M7.2 15.6h1.8M15.4 12.4h1.8M15.4 16h1.8"/></symbol>
+  <symbol id="a-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.4" cy="8.4" r="3.4"/><path d="M3.4 20c0-3.3 2.7-5.4 6-5.4s6 2.1 6 5.4"/><path d="M16.4 5.6a3.4 3.4 0 0 1 0 6.6"/><path d="M17.6 14.8c2 .6 3.4 2.3 3.4 4.6"/></symbol>
+  <symbol id="a-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 5.6a2 2 0 0 0-2-2H5.8a2 2 0 0 0-2 2v8.6a2 2 0 0 0 2 2h3.4v3.6l4.4-3.6h4.6a2 2 0 0 0 2-2Z"/></symbol>
+  <symbol id="a-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.1 4.9 7.2 4.6 4.2 5.1v13c3-.5 5.9-.2 7.8 1.5 1.9-1.7 4.8-2 7.8-1.5v-13c-3-.5-5.9-.2-7.8 1.5Z"/><path d="M12 6.6v13"/></symbol>
+  <symbol id="a-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m19.6 19.6-4-4"/></symbol>
+  <symbol id="a-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="a-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.4V4.6"/><path d="m7.4 9.2 4.6-4.6 4.6 4.6"/><path d="M4.4 15.4v3.4a1.8 1.8 0 0 0 1.8 1.8h11.6a1.8 1.8 0 0 0 1.8-1.8v-3.4"/></symbol>
+  <symbol id="a-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.2v11.8"/><path d="m7.4 11.4 4.6 4.6 4.6-4.6"/><path d="M4.4 15.6v3.2a1.8 1.8 0 0 0 1.8 1.8h11.6a1.8 1.8 0 0 0 1.8-1.8v-3.2"/></symbol>
+  <symbol id="a-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.4 7h15.2"/><path d="M9.4 7V4.8h5.2V7"/><path d="M6.6 7l.9 12a1.8 1.8 0 0 0 1.8 1.7h5.4a1.8 1.8 0 0 0 1.8-1.7l.9-12"/><path d="M10.4 11v6M13.6 11v6"/></symbol>
+  <symbol id="a-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15.4 4.4 19.6 8.6 9.2 19H5v-4.2Z"/><path d="m13.4 6.4 4.2 4.2"/></symbol>
+  <symbol id="a-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19.8 12a7.8 7.8 0 1 1-2.4-5.6"/><path d="M19.8 4.6v5.2h-5.2"/></symbol>
+  <symbol id="a-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.4 6.4 11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
+  <symbol id="a-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 13.4a3.6 3.6 0 0 0 5.1 0l2.8-2.8a3.6 3.6 0 0 0-5.1-5.1l-1.4 1.4"/><path d="M13.4 10.6a3.6 3.6 0 0 0-5.1 0l-2.8 2.8a3.6 3.6 0 0 0 5.1 5.1l1.4-1.4"/></symbol>
+  <symbol id="a-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.8 4.2h3.4a1.8 1.8 0 0 1 1.8 1.8v12a1.8 1.8 0 0 1-1.8 1.8h-3.4"/><path d="m9.4 8.2-3.8 3.8 3.8 3.8"/><path d="M5.6 12h9.4"/></symbol>
+  <symbol id="a-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.6" y="9.8" width="14.8" height="10.4" rx="2.2"/><path d="M8 9.8V6.8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="a-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.6" cy="15.4" r="3.6"/><path d="m10.2 12.8 8.2-8.2"/><path d="m15.2 7.8 2.6 2.6"/></symbol>
+</svg>
+
+<div id="app">
+  <!-- ================= 登录页 ================= -->
+  <div v-if="!token" class="login-page">
+    <div class="login-brand">
+      <div class="lb-logo">
+        <svg><use href="#a-home"></use></svg> 安居乐 · 管理后台
+      </div>
+      <div class="lb-main">
+        <h1>把房源数据<br>管得<em>清清楚楚</em></h1>
+        <p>房源增删改查、用户与评论管理、知识库维护，全部收在一个后台里；每次写入都会同步向量库，AI 问答立刻生效。</p>
+      </div>
+      <div class="lb-points">
+        <div class="lb-point"><i>1</i> 房源批量增删改，支持 CSV 导入导出</div>
+        <div class="lb-point"><i>2</i> RBAC 权限控制，写操作全部留痕</div>
+        <div class="lb-point"><i>3</i> 数据概览、区域与价格分布一屏掌握</div>
+      </div>
+    </div>
+    <div class="login-panel">
+      <div class="login-card">
+        <h2>管理员登录</h2>
+        <p class="lc-sub">仅限管理员登录；前台已登录管理员时可直接进入，无需重复登录</p>
+        <div class="lc-field">
+          <label>账号</label>
+          <input v-model="loginForm.username" @keyup.enter="doLogin" placeholder="请输入管理员账号" autocomplete="off">
+        </div>
+        <div class="lc-field">
+          <label>密码</label>
+          <input v-model="loginForm.password" type="password" @keyup.enter="doLogin" placeholder="请输入密码" autocomplete="new-password">
+        </div>
+        <label class="lc-remember">
+          <input type="checkbox" v-model="remember">
+          记住登录（本机保留登录状态，下次打开免登录）
+        </label>
+        <div v-if="loginError" class="lc-error">{{ loginError }}</div>
+        <button class="lc-submit" :disabled="logging" @click="doLogin">{{ logging ? '登录中…' : '登录后台' }}</button>
+        <p class="lc-tip">请使用管理员账号登录；不勾选「记住登录」时，关闭标签页后需要重新登录。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 校验已有登录态：先别闪后台，也不要直接放行 -->
+  <div v-else-if="authChecking" class="auth-splash">
+    <div class="auth-splash-card">
+      <span class="auth-spin"></span>
+      正在验证登录状态…
+    </div>
+  </div>
+
+  <!-- ================= 后台主体 ================= -->
+  <div v-else class="app-shell">
+    <aside class="sidebar">
+      <div class="sb-brand">
+        <svg><use href="#a-home"></use></svg><span>安居乐</span><small>ADMIN</small>
+      </div>
+      <nav class="sb-nav">
+        <div class="sb-group">
+          <div class="sb-group-title">数据</div>
+          <div class="sb-item" :class="{active: view==='overview'}" @click="switchView('overview')">
+            <svg><use href="#a-grid"></use></svg> 概览
+          </div>
+          <div class="sb-item" :class="{active: view==='houses'}" @click="switchView('houses')">
+            <svg><use href="#a-building"></use></svg> 房源管理
+            <span class="sb-count" v-if="overview.houses.total">{{ overview.houses.total.toLocaleString() }}</span>
+          </div>
+          <div class="sb-item" :class="{active: view==='users'}" @click="switchView('users')">
+            <svg><use href="#a-users"></use></svg> 用户管理
+          </div>
+          <div class="sb-item" :class="{active: view==='comments'}" @click="switchView('comments')">
+            <svg><use href="#a-message"></use></svg> 评论管理
+          </div>
+        </div>
+        <div class="sb-group">
+          <div class="sb-group-title">内容</div>
+          <div class="sb-item" :class="{active: view==='knowledge'}" @click="switchView('knowledge')">
+            <svg><use href="#a-book"></use></svg> 知识库
+          </div>
+        </div>
+      </nav>
+      <div class="sb-foot">
+        <div class="sb-user">
+          <div class="sb-avatar">{{ (admin.username || 'A').slice(0,1).toUpperCase() }}</div>
+          <div class="sb-user-info">
+            <b>{{ admin.username || 'admin' }}</b>
+            <span>超级管理员</span>
+          </div>
+        </div>
+        <div class="sb-actions">
+          <a class="sb-btn" href="/" target="_blank" rel="noopener"><svg><use href="#a-link"></use></svg> 前台</a>
+          <button class="sb-btn" @click="doLogout"><svg><use href="#a-logout"></use></svg> 退出</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <div>
+          <div class="tb-title">{{ viewMeta.title }}</div>
+          <div class="tb-sub">{{ viewMeta.sub }}</div>
+        </div>
+        <div class="tb-right">
+          <span class="tb-status"><i></i> 服务正常</span>
+          <button class="btn btn-sm" @click="refreshCurrent"><svg><use href="#a-refresh"></use></svg> 刷新</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- ---------- 概览 ---------- -->
+        <template v-if="view==='overview'">
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-top">
+                <span class="stat-label">在售房源</span>
+                <span class="stat-icon green"><svg><use href="#a-building"></use></svg></span>
+              </div>
+              <div class="stat-num">{{ overview.houses.total.toLocaleString() }}<small>套</small></div>
+              <div class="stat-foot">今日新增 <b>{{ overview.houses.today_new }}</b> 套</div>
+            </div>
+            <div class="stat">
+              <div class="stat-top">
+                <span class="stat-label">注册用户</span>
+                <span class="stat-icon blue"><svg><use href="#a-users"></use></svg></span>
+              </div>
+              <div class="stat-num">{{ overview.users.total.toLocaleString() }}<small>人</small></div>
+              <div class="stat-foot">今日新增 <b>{{ overview.users.today_new }}</b> 人</div>
+            </div>
+            <div class="stat">
+              <div class="stat-top">
+                <span class="stat-label">房源评论</span>
+                <span class="stat-icon orange"><svg><use href="#a-message"></use></svg></span>
+              </div>
+              <div class="stat-num">{{ overview.comments.total.toLocaleString() }}<small>条</small></div>
+              <div class="stat-foot">平均评分 <b>{{ overview.comments.avg_rating }}</b> 分</div>
+            </div>
+            <div class="stat">
+              <div class="stat-top">
+                <span class="stat-label">平均总价</span>
+                <span class="stat-icon purple"><svg><use href="#a-grid"></use></svg></span>
+              </div>
+              <div class="stat-num">{{ overview.houses.avg_price }}<small>万</small></div>
+              <div class="stat-foot">覆盖 <b>{{ overview.houses.regions }}</b> 个行政区</div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;" class="ov-charts">
+            <div class="card">
+              <div class="card-head"><h3>区域分布</h3><span class="ch-note">房源数 Top 8</span></div>
+              <div class="card-body">
+                <div class="dist-list">
+                  <div class="dist-row" v-for="r in overview.region_distribution" :key="r.name">
+                    <span class="dist-name">{{ r.name }}</span>
+                    <span class="dist-bar"><i :style="{width: barWidth(r.value, regionMax)}"></i></span>
+                    <span class="dist-val">{{ r.value.toLocaleString() }}</span>
+                  </div>
+                  <div v-if="!overview.region_distribution.length" class="empty">暂无数据</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><h3>价格区间</h3><span class="ch-note">按总价分桶</span></div>
+              <div class="card-body">
+                <div class="dist-list">
+                  <div class="dist-row" v-for="p in overview.price_distribution" :key="p.name">
+                    <span class="dist-name">{{ p.name }}</span>
+                    <span class="dist-bar"><i :style="{width: barWidth(p.value, priceMax)}"></i></span>
+                    <span class="dist-val">{{ p.value.toLocaleString() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <div class="card-head">
+              <h3>最新入库</h3>
+              <div class="ch-right"><button class="btn btn-sm" @click="switchView('houses')">去房源管理</button></div>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead><tr><th style="width:80px;">ID</th><th>标题</th><th style="width:100px;">区域</th><th style="width:100px;">总价</th><th style="width:110px;">户型</th><th style="width:100px;">面积</th></tr></thead>
+                <tbody>
+                  <tr v-for="h in overview.recent_houses" :key="h.id">
+                    <td class="mono">{{ h.id }}</td>
+                    <td class="cell-title" :title="h.title">{{ h.title }}</td>
+                    <td>{{ h.region }}</td>
+                    <td class="price-cell">{{ h.price }}</td>
+                    <td>{{ h.rooms }}</td>
+                    <td>{{ h.area }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!overview.recent_houses.length" class="empty">暂无房源</div>
+            </div>
+          </div>
+        </template>
+
+        <!-- ---------- 房源管理 ---------- -->
+        <template v-else-if="view==='houses'">
+          <div class="card">
+            <div class="toolbar">
+              <input class="field field-search" v-model="houseQuery.keyword" placeholder="搜索标题 / 小区 / 区域" @keyup.enter="reloadHouses">
+              <select class="field" v-model="houseQuery.region" @change="reloadHouses">
+                <option value="">全部区域</option>
+                <option v-for="r in regions" :key="r.name" :value="r.name">{{ r.name }}</option>
+              </select>
+              <button class="btn" @click="reloadHouses"><svg><use href="#a-search"></use></svg> 查询</button>
+              <span class="spacer"></span>
+              <span class="count">共 <b>{{ houseTotal.toLocaleString() }}</b> 条</span>
+              <button class="btn btn-danger" v-if="selectedHouses.length" @click="batchDeleteHouses">
+                <svg><use href="#a-trash"></use></svg> 删除选中（{{ selectedHouses.length }}）
+              </button>
+              <button class="btn" @click="exportHouses"><svg><use href="#a-download"></use></svg> 导出 CSV</button>
+              <button class="btn" @click="triggerImport"><svg><use href="#a-upload"></use></svg> 导入 CSV</button>
+              <input ref="importInput" type="file" accept=".csv" style="display:none" @change="importHouses">
+              <button class="btn btn-primary" @click="openHouseForm(null)"><svg><use href="#a-plus"></use></svg> 新增房源</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th style="width:36px;"><input class="chk" type="checkbox" :checked="allHousesSelected" @change="toggleAllHouses"></th>
+                    <th style="width:70px;">ID</th>
+                    <th>标题</th>
+                    <th style="width:92px;">区域</th>
+                    <th style="width:96px;">总价</th>
+                    <th style="width:96px;">户型</th>
+                    <th style="width:92px;">面积</th>
+                    <th style="width:104px;">朝向</th>
+                    <th style="width:150px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="h in houses" :key="h.id">
+                    <td><input class="chk" type="checkbox" :value="h.id" v-model="selectedHouses"></td>
+                    <td class="mono">{{ h.id }}</td>
+                    <td class="cell-title" :title="h.title">{{ h.title }}</td>
+                    <td>{{ h.region }}</td>
+                    <td class="price-cell">{{ h.price }}</td>
+                    <td>{{ h.rooms }}</td>
+                    <td>{{ h.area }}</td>
+                    <td>{{ h.direction }}</td>
+                    <td class="cell-actions">
+                      <button class="btn btn-sm" @click="openHouseForm(h)"><svg><use href="#a-edit"></use></svg> 编辑</button>
+                      <button class="btn btn-sm btn-danger" @click="deleteHouse(h)">删除</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="housesLoading" class="empty">加载中…</div>
+              <div v-else-if="!houses.length" class="empty">没有匹配的房源</div>
+            </div>
+            <div class="pager">
+              <span class="pg-total">共 <b>{{ houseTotal.toLocaleString() }}</b> 条</span>
+              <span class="spacer"></span>
+              <button :disabled="housePage<=1" @click="goHousePage(1)">首页</button>
+              <button :disabled="housePage<=1" @click="goHousePage(housePage-1)">上一页</button>
+              <span class="pg-jump">跳至
+                <input class="pg-input" type="number" min="1" :max="housePages" v-model="houseJump"
+                       placeholder="页码" @keyup.enter="jumpHousePage">
+                页
+              </span>
+              <button class="pg-go" @click="jumpHousePage">确定</button>
+              <span class="pg-pos">第 <b>{{ housePage }}</b> / {{ housePages }} 页</span>
+              <button :disabled="housePage>=housePages" @click="goHousePage(housePage+1)">下一页</button>
+              <button :disabled="housePage>=housePages" @click="goHousePage(housePages)">尾页</button>
+              <span class="pg-size">每页 {{ housePageSize }} 条</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- ---------- 用户管理 ---------- -->
+        <template v-else-if="view==='users'">
+          <div class="card">
+            <div class="toolbar">
+              <input class="field field-search" v-model="userQuery.keyword" placeholder="搜索用户名 / 邮箱" @keyup.enter="loadUsers(1)">
+              <button class="btn" @click="loadUsers(1)"><svg><use href="#a-search"></use></svg> 查询</button>
+              <span class="spacer"></span>
+              <span class="count">共 <b>{{ userTotal.toLocaleString() }}</b> 人</span>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr><th style="width:70px;">ID</th><th style="width:180px;">用户名</th><th>邮箱</th><th style="width:200px;">注册时间</th><th style="width:190px;">操作</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="u in users" :key="u.id">
+                    <td class="mono">{{ u.id }}</td>
+                    <td>{{ u.name }}</td>
+                    <td class="cell-ellipsis">{{ u.email || '—' }}</td>
+                    <td class="mono">{{ formatTime(u.create_time) }}</td>
+                    <td class="cell-actions">
+                      <button class="btn btn-sm" @click="openResetPwd(u)"><svg><use href="#a-key"></use></svg> 重置密码</button>
+                      <button class="btn btn-sm btn-danger" @click="deleteUser(u)">删除</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!users.length" class="empty">没有匹配的用户</div>
+            </div>
+            <div class="pager">
+              <span class="pg-total">共 <b>{{ userTotal.toLocaleString() }}</b> 人</span>
+              <span class="spacer"></span>
+              <button :disabled="userPage<=1" @click="loadUsers(1)">首页</button>
+              <button :disabled="userPage<=1" @click="loadUsers(userPage-1)">上一页</button>
+              <span class="pg-jump">跳至
+                <input class="pg-input" type="number" min="1" :max="userPages" v-model="userJump"
+                       placeholder="页码" @keyup.enter="jumpUserPage">
+                页
+              </span>
+              <button class="pg-go" @click="jumpUserPage">确定</button>
+              <span class="pg-pos">第 <b>{{ userPage }}</b> / {{ userPages }} 页</span>
+              <button :disabled="userPage>=userPages" @click="loadUsers(userPage+1)">下一页</button>
+              <button :disabled="userPage>=userPages" @click="loadUsers(userPages)">尾页</button>
+              <span class="pg-size">每页 {{ pageSize }} 条</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- ---------- 评论管理 ---------- -->
+        <template v-else-if="view==='comments'">
+          <div class="card">
+            <div class="toolbar">
+              <input class="field field-search" v-model="commentQuery.keyword" placeholder="搜索评论内容 / 评论 ID" @keyup.enter="loadComments(1)">
+              <input class="field" style="width:120px" v-model="commentQuery.id" placeholder="评论 ID" @keyup.enter="loadComments(1)">
+              <input class="field" style="width:120px" v-model="commentQuery.house_id" placeholder="房源 ID" @keyup.enter="loadComments(1)">
+              <select class="field" style="width:126px" v-model="commentQuery.sentiment" @change="loadComments(1)">
+                <option value="">全部情感</option>
+                <option value="积极">积极</option>
+                <option value="中性">中性</option>
+                <option value="消极">消极</option>
+                <option value="未分析">未分析</option>
+              </select>
+              <button class="btn" @click="loadComments(1)"><svg><use href="#a-search"></use></svg> 查询</button>
+              <button class="btn" @click="reanalyzeSentiment" :disabled="commentReanalyzing">
+                <svg><use href="#a-refresh"></use></svg> {{ commentReanalyzing ? '补算中…' : '补算情感' }}
+              </button>
+              <button class="btn" @click="exportComments"><svg><use href="#a-download"></use></svg> 导出 CSV</button>
+              <span class="spacer"></span>
+              <span class="count">共 <b>{{ commentTotal.toLocaleString() }}</b> 条</span>
+              <button class="btn btn-danger" v-if="selectedComments.length" @click="batchDeleteComments">
+                <svg><use href="#a-trash"></use></svg> 删除选中（{{ selectedComments.length }}）
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th style="width:36px;"><input class="chk" type="checkbox" :checked="allCommentsSelected" @change="toggleAllComments"></th>
+                    <th style="width:70px;">ID</th>
+                    <th style="width:88px;">房源</th>
+                    <th style="width:110px;">用户</th>
+                    <th style="width:74px;">评分</th>
+                    <th style="width:84px;">情感</th>
+                    <th>内容</th>
+                    <th style="width:150px;">时间</th>
+                    <th style="width:140px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="c in comments" :key="c.id">
+                    <td><input class="chk" type="checkbox" :value="c.id" v-model="selectedComments"></td>
+                    <td class="mono">{{ c.id }}</td>
+                    <td class="mono">
+                      <a class="link-cell" title="只看这套房源的评论"
+                         @click="filterCommentsByHouse(c.house_id)">#{{ c.house_id }}</a>
+                    </td>
+                    <td>{{ c.user_name }}</td>
+                    <td><span class="tag" :class="c.score>=4?'pos':(c.score<=2?'neg':'')">{{ c.score }}</span></td>
+                    <td><span class="tag" :class="sentimentClass(c.sentiment)">{{ c.sentiment || '未分析' }}</span></td>
+                    <td class="cell-ellipsis clickable" :title="c.content" @click="openCommentDetail(c)">{{ c.content }}</td>
+                    <td class="mono">{{ formatTime(c.create_time) }}</td>
+                    <td>
+                      <div class="cell-actions">
+                        <button class="btn btn-sm" @click="openCommentDetail(c)">查看</button>
+                        <button class="btn btn-sm btn-danger" @click="deleteComment(c)">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!comments.length" class="empty">没有匹配的评论</div>
+            </div>
+            <div class="pager">
+              <span class="pg-total">共 <b>{{ commentTotal.toLocaleString() }}</b> 条</span>
+              <span class="spacer"></span>
+              <button :disabled="commentPage<=1" @click="loadComments(1)">首页</button>
+              <button :disabled="commentPage<=1" @click="loadComments(commentPage-1)">上一页</button>
+              <span class="pg-jump">跳至
+                <input class="pg-input" type="number" min="1" :max="commentPages" v-model="commentJump"
+                       placeholder="页码" @keyup.enter="jumpCommentPage">
+                页
+              </span>
+              <button class="pg-go" @click="jumpCommentPage">确定</button>
+              <span class="pg-pos">第 <b>{{ commentPage }}</b> / {{ commentPages }} 页</span>
+              <button :disabled="commentPage>=commentPages" @click="loadComments(commentPage+1)">下一页</button>
+              <button :disabled="commentPage>=commentPages" @click="loadComments(commentPages)">尾页</button>
+              <span class="pg-size">每页 {{ pageSize }} 条</span>
+            </div>
+          </div>
+        </template>
+
+        <!-- ---------- 知识库 ---------- -->
+        <template v-else-if="view==='knowledge'">
+          <div class="card">
+            <div class="card-head">
+              <h3>知识文档</h3>
+              <span class="ch-note">支持 txt / md / pdf / docx，上传后自动切片入库</span>
+              <div class="ch-right">
+                <button class="btn" @click="rebuildIndex" :disabled="indexing">
+                  <svg><use href="#a-refresh"></use></svg> {{ indexing ? '重建中…' : '重建房源索引' }}
+                </button>
+                <button class="btn btn-primary" @click="triggerUpload"><svg><use href="#a-upload"></use></svg> 上传文档</button>
+                <input ref="uploadInput" type="file" accept=".txt,.md,.pdf,.docx" style="display:none" @change="uploadDoc">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr><th style="width:104px;">文档 ID</th><th>文件名</th><th style="width:120px;">切片数</th><th style="width:180px;">上传时间</th><th style="width:90px;">操作</th></tr>
+                </thead>
+                <tbody>
+                  <tr v-for="d in docs" :key="d.doc_id">
+                    <td class="mono" :title="d.doc_id || ''">{{ (d.doc_id || '').slice(0, 8) || '—' }}</td>
+                    <td class="cell-title" :title="d.filename">{{ d.filename }}</td>
+                    <td class="mono">{{ d.chunk_count }}</td>
+                    <td class="mono">{{ d.create_time || '—' }}</td>
+                    <td><button class="btn btn-sm btn-danger" @click="deleteDoc(d)">删除</button></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div v-if="!docs.length" class="empty">还没有知识文档，上传一份即可被 AI 问答引用</div>
+            </div>
+            <div class="pager">
+              <span class="pg-total">共 <b>{{ docTotal }}</b> 篇</span>
+              <span class="spacer"></span>
+              <button :disabled="docPage<=1" @click="loadDocs(1)">首页</button>
+              <button :disabled="docPage<=1" @click="loadDocs(docPage-1)">上一页</button>
+              <span class="pg-jump">跳至
+                <input class="pg-input" type="number" min="1" :max="docPages" v-model="docJump"
+                       placeholder="页码" @keyup.enter="jumpDocPage">
+                页
+              </span>
+              <button class="pg-go" @click="jumpDocPage">确定</button>
+              <span class="pg-pos">第 <b>{{ docPage }}</b> / {{ docPages }} 页</span>
+              <button :disabled="docPage>=docPages" @click="loadDocs(docPage+1)">下一页</button>
+              <button :disabled="docPage>=docPages" @click="loadDocs(docPages)">尾页</button>
+            </div>
+          </div>
+        </template>
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= 房源编辑抽屉（右侧滑出，字段按性质分组） ================= -->
+  <div v-if="houseFormVisible" class="drawer-mask" @click.self="closeHouseForm">
+    <aside class="drawer">
+      <header class="dw-head">
+        <div>
+          <h3>{{ houseForm.id ? '编辑房源' : '新增房源' }}<span v-if="houseForm.id">#{{ houseForm.id }}</span></h3>
+          <p>保存后自动同步向量库，AI 问答立刻可检索</p>
+        </div>
+        <button class="modal-close" @click="closeHouseForm"><svg><use href="#a-x"></use></svg></button>
+      </header>
+
+      <div class="dw-body">
+        <!-- 图片：可视化选择 + 上传 -->
+        <section class="dw-sec">
+          <div class="dw-sec-head">
+            <h4>房源图片</h4>
+            <div class="dw-sec-actions">
+              <button class="btn btn-sm" @click="toggleGallery">
+                <svg><use href="#a-grid"></use></svg> {{ galleryOpen ? '收起图库' : '从图库选择' }}
+              </button>
+              <button class="btn btn-sm" @click="triggerImageUpload">
+                <svg><use href="#a-upload"></use></svg> 上传新图
+              </button>
+              <input ref="imageInput" type="file" accept="image/jpeg,image/png,image/webp"
+                     class="hidden-file" @change="uploadImage">
+            </div>
+          </div>
+
+          <div class="img-hero" :class="{empty: !houseForm.image_url}">
+            <img v-if="houseForm.image_url" :src="houseForm.image_url" alt="房源主图">
+            <div v-else class="img-hero-empty">
+              <svg><use href="#a-building"></use></svg>
+              <span>还未选择图片，可点右上角「从图库选择」或上传新图</span>
+            </div>
+            <span class="img-hero-name" v-if="houseForm.image_url">{{ imageName(houseForm.image_url) }}</span>
+          </div>
+
+          <div v-if="galleryOpen" class="gallery">
+            <button class="gallery-item" v-for="img in galleryImages" :key="img.url"
+                    :class="{selected: houseForm.image_url === img.url}"
+                    :title="img.name" @click="pickImage(img)">
+              <img :src="img.url" :alt="img.name" loading="lazy">
+              <span class="gallery-check" v-if="houseForm.image_url === img.url">✓</span>
+            </button>
+            <div v-if="!galleryImages.length" class="gallery-empty">图库为空，先上传一张</div>
+          </div>
+        </section>
+
+        <!-- 基础信息 -->
+        <section class="dw-sec">
+          <div class="dw-sec-head"><h4>基础信息</h4></div>
+          <div class="form-grid">
+            <div class="form-item full">
+              <label>标题<em>*</em></label>
+              <input v-model="houseForm.title" placeholder="如：望京 SOHO 精装两居 满五唯一">
+            </div>
+            <div class="form-item">
+              <label>区域<em>*</em></label>
+              <select v-model="houseForm.region">
+                <option value="">请选择区域</option>
+                <option v-if="houseForm.region && !regions.some(r => r.name === houseForm.region)"
+                        :value="houseForm.region">{{ houseForm.region }}（原值）</option>
+                <option v-for="r in regions" :key="r.name" :value="r.name">{{ r.name }}</option>
+              </select>
+            </div>
+            <div class="form-item">
+              <label>总价<em>*</em></label>
+              <input v-model="houseForm.price" placeholder="如：277万">
+            </div>
+            <div class="form-item">
+              <label>户型</label>
+              <input v-model="houseForm.rooms" list="optRooms" placeholder="如：2室1厅">
+              <datalist id="optRooms">
+                <option v-for="t in houseTypeOptions" :key="t" :value="t"></option>
+              </datalist>
+            </div>
+            <div class="form-item">
+              <label>面积</label>
+              <input v-model="houseForm.area" placeholder="如：56平米">
+            </div>
+            <div class="form-item">
+              <label>朝向</label>
+              <input v-model="houseForm.direction" list="optDirection" placeholder="如：南北">
+              <datalist id="optDirection">
+                <option v-for="d in directionOptions" :key="d" :value="d"></option>
+              </datalist>
+            </div>
+            <div class="form-item">
+              <label>装修</label>
+              <input v-model="houseForm.decoration" list="optDecoration" placeholder="如：精装">
+              <datalist id="optDecoration">
+                <option v-for="d in decorationOptions" :key="d" :value="d"></option>
+              </datalist>
+            </div>
+            <div class="form-item">
+              <label>楼层</label>
+              <input v-model="houseForm.floor" list="optFloor" placeholder="如：中楼层">
+              <datalist id="optFloor">
+                <option v-for="f in floorOptions" :key="f" :value="f"></option>
+              </datalist>
+            </div>
+            <div class="form-item">
+              <label>交易类型</label>
+              <input v-model="houseForm.rent_type" list="optRentType" placeholder="如：二手房">
+              <datalist id="optRentType">
+                <option v-for="t in rentTypeOptions" :key="t" :value="t"></option>
+              </datalist>
+            </div>
+          </div>
+        </section>
+
+        <!-- 位置：地图选点 -->
+        <section class="dw-sec">
+          <div class="dw-sec-head">
+            <h4>位置信息</h4>
+            <span class="dw-hint">在地图上点选位置，房源才会出现在「地图找房」</span>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-item">
+              <label>小区 / 地址</label>
+              <input v-model="houseForm.address" placeholder="如：新村西里">
+            </div>
+            <div class="form-item">
+              <label>街道 / 商圈</label>
+              <input v-model="houseForm.block" placeholder="如：丰台街道">
+            </div>
+          </div>
+
+          <div class="map-tools">
+            <input class="field" v-model="mapSearchKw" placeholder="输入小区 / 地铁站 / 商圈，回车定位"
+                   @keyup.enter="searchLocation">
+            <button class="btn btn-sm" @click="searchLocation">搜索定位</button>
+            <button class="btn btn-sm" @click="locateByAddress">按地址定位</button>
+            <button class="btn btn-sm btn-danger" v-if="houseForm.longitude || houseForm.latitude"
+                    @click="clearCoord">清除坐标</button>
+          </div>
+
+          <label class="map-check">
+            <input type="checkbox" class="chk" v-model="autoFillAddr">
+            在地图上点选后，自动识别并填入区域 / 街道 / 小区
+          </label>
+
+          <div class="map-box">
+            <div id="adminHouseMap" class="map-canvas"></div>
+            <div class="map-hint" v-if="!houseForm.longitude && !mapLoadingMap">
+              {{ autoFillAddr ? '在地图上单击，自动识别并填入地址' : '在地图上单击选择房源位置' }}
+            </div>
+            <div class="map-hint" v-if="mapLoadingMap">地图加载中…</div>
+          </div>
+
+          <div class="coord-row">
+            <span>经度 <b>{{ houseForm.longitude || '未选择' }}</b></span>
+            <span>纬度 <b>{{ houseForm.latitude || '未选择' }}</b></span>
+            <span class="coord-tip" v-if="!houseForm.longitude && !mapLoadingMap">
+              未设置坐标的房源不会出现在地图找房页
+            </span>
+          </div>
+        </section>
+
+        <!-- 时间 -->
+        <section class="dw-sec">
+          <div class="dw-sec-head"><h4>时间信息</h4></div>
+          <div class="form-grid">
+            <div class="form-item">
+              <label>发布时间</label>
+              <input v-model="houseForm.publish_date" type="date">
+            </div>
+            <div class="form-item">
+              <label>建筑年代</label>
+              <input v-model="houseForm.build_year" placeholder="如：2015">
+            </div>
+          </div>
+        </section>
+
+        <!-- 描述 -->
+        <section class="dw-sec">
+          <div class="dw-sec-head">
+            <h4>房源描述</h4>
+            <span class="dw-hint">会作为 RAG 检索文档的一部分</span>
+          </div>
+          <textarea v-model="houseForm.description" rows="4"
+                    placeholder="选填，如：南北通透、满五唯一、近地铁 14 号线、业主急售"></textarea>
+        </section>
+      </div>
+
+      <footer class="dw-foot">
+        <span class="dw-tip">带 <em>*</em> 为必填</span>
+        <button class="btn" @click="closeHouseForm">取消</button>
+        <button class="btn btn-primary" :disabled="savingHouse" @click="saveHouse">
+          {{ savingHouse ? '保存中…' : '保存' }}
+        </button>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- ================= 重置密码弹窗 ================= -->
+  <div v-if="resetUser" class="modal-mask" @click.self="resetUser=null">
+    <div class="modal narrow">
+      <div class="modal-head">
+        <div>
+          <h3>重置密码</h3>
+          <p>正在重置用户「{{ resetUser.name }}」的登录密码</p>
+        </div>
+        <button class="modal-close" @click="resetUser=null"><svg><use href="#a-x"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-item">
+          <label>新密码<em>*</em></label>
+          <input v-model="resetPassword" type="text" placeholder="至少 6 位">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" @click="resetUser=null">取消</button>
+        <button class="btn btn-primary" :disabled="resetting" @click="submitResetPassword">{{ resetting ? '提交中…' : '确认重置' }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 评论详情弹窗 ================= -->
+  <div v-if="commentDetail" class="modal-mask" @click.self="closeCommentDetail">
+    <div class="modal cmt-modal">
+      <div class="modal-head">
+        <div>
+          <h3>评论详情</h3>
+          <p>评论 ID {{ commentDetail.id }} · {{ formatTime(commentDetail.create_time) }}</p>
+        </div>
+        <button class="modal-close" @click="closeCommentDetail"><svg><use href="#a-x"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="cmt-meta">
+          <span>用户 <b>{{ commentDetail.user_name || '匿名' }}</b></span>
+          <span>评分
+            <span class="tag" :class="commentDetail.score>=4?'pos':(commentDetail.score<=2?'neg':'')">{{ commentDetail.score }}</span>
+          </span>
+          <span>情感
+            <span class="tag" :class="sentimentClass(commentDetail.sentiment)">{{ commentDetail.sentiment || '未分析' }}</span>
+          </span>
+        </div>
+        <div class="cmt-house">
+          <span>房源 #{{ commentDetail.house_id || '—' }}</span>
+          <template v-if="commentHouse">
+            <b>{{ commentHouse.title || '未命名房源' }}</b>
+            <span v-if="commentHouse.address">· {{ commentHouse.address }}</span>
+            <span v-if="commentHouse.price" class="price-cell">{{ commentHouse.price }}</span>
+          </template>
+          <span v-else-if="commentHouseLoading">房源加载中…</span>
+          <span v-else>房源已删除或不存在</span>
+        </div>
+        <div class="cmt-content">{{ commentDetail.content }}</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-sm" v-if="commentDetail.house_id"
+                @click="filterCommentsByHouse(commentDetail.house_id)">只看该房源评论</button>
+        <span class="muted"></span>
+        <button class="btn" @click="closeCommentDetail">关闭</button>
+        <button class="btn btn-danger" @click="deleteComment(commentDetail)">删除评论</button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="toast.text" class="toast" :class="{error: toast.error}">{{ toast.text }}</div>
+</div>
+
+<script src="/static/js/api.js?v=20261021c"></script>
+<script src="/static/js/puzzle-captcha.js?v=20261021a"></script>
+<script src="/static/admin/admin.js?v=20261117a"></script>
+</body>
+</html>

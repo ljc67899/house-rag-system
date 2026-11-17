@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: Syntax & secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Byte-compile all sources
+        run: python -m compileall -q app scripts run.py
+
+      - name: Verify .env is not tracked
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env 被提交进版本库，请立刻移除"
+            exit 1
+          fi
+          echo ".env 未被追踪，OK"
+
+      - name: Scan for hardcoded secrets
+        run: |
+          # 只扫描源码与配置，排除数据/文档目录
+          if grep -rEn "sk-[A-Za-z0-9]{20,}|LTAI[0-9A-Za-z]{12,}" \
+               --include="*.py" --include="*.js" --include="*.html" \
+               --include="*.yml" --include="*.json" \
+               app scripts run.py .github 2>/dev/null; then
+            echo "::error::发现疑似硬编码密钥"
+            exit 1
+          fi
+          echo "未发现硬编码密钥，OK"
+
+      - name: Check .env.example keys exist in config
+        run: python scripts/check_config_keys.py

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "created": "2026-11-10",
+  "notes": [
+    "条件抽取评测集：给自然语言，只考「能不能抽出正确的结构化条件」，不考排序。",
+    "",
+    "为什么单独一套：v3 把抽取和排序混在一起测，mixed 层掉分时根本分不清是正则漏抽",
+    "还是排序没生效——结果查了半天才发现是「两居」的「两」不在字符类里。拆开之后，",
+    "这类 bug 会在字段级准确率上直接标红，不用再猜。",
+    "",
+    "expect  只写期望有值的字段，按字段逐一比对；",
+    "forbid  列出必须为空的字段，用来卡「不该抽的乱抽」（例如把「首付 100 万」当总价上限）。",
+    "",
+    "E022「500万以内，两三居都行」曾长期是红的：「两三居」这种省略式并列，第二个「居」被省掉了，",
+    "单个正则只抓到「三居」，「两居」整个丢掉。修法见 _ROOMS_RANGE_RE（靠相邻两个数字识别）。",
+    "E025-E027 是修完之后补的同类题，用来确认不是只为过 E022 打的一个补丁：",
+    "  E025「三四居」E026「两、三居」E027「一居两居都能接受」。",
+    "",
+    "注意：本集测的是 `RAGGraph._regex_filters`（纯正则、零成本那一层）。",
+    "线上还有模型兜底层（`_extract_filters`），但那是按需触发的，不在本集口径内。"
+  ],
+  "items": [
+    {"id": "E001", "question": "朝阳区 500 万以内的两居", "expect": {"region": "朝阳区", "price_max": 500, "rooms": "2室"}},
+    {"id": "E002", "question": "海淀区 800 万以下的三居", "expect": {"region": "海淀区", "price_max": 800, "rooms": "3室"}},
+    {"id": "E003", "question": "丰台区 60 平米的两居", "expect": {"region": "丰台区", "area_min": 54, "rooms": "2室"}},
+    {"id": "E004", "question": "通州 精装修 两居", "expect": {"region": "通州区", "decoration": "精装", "rooms": "2室"}},
+    {"id": "E005", "question": "南北通透的三居", "expect": {"orientation": "南北", "rooms": "3室"}},
+    {"id": "E006", "question": "带电梯的一居", "expect": {"elevator": true, "rooms": "1室"}},
+
+    {"id": "E007", "question": "300 万左右的两居", "expect": {"price_min": 270, "price_max": 330, "rooms": "2室"}},
+    {"id": "E008", "question": "200 万到 400 万的房子", "expect": {"price_min": 200, "price_max": 400}},
+    {"id": "E009", "question": "200-400 万的三居", "expect": {"price_min": 200, "price_max": 400, "rooms": "3室"}},
+    {"id": "E010", "question": "顺义区 800 万以上的房子", "expect": {"region": "顺义区", "price_min": 800}},
+    {"id": "E011", "question": "600 万以下的一居室", "expect": {"price_max": 600, "rooms": "1室"}},
+    {"id": "E012", "question": "60 平米以上的两居", "expect": {"area_min": 60, "rooms": "2室"}},
+    {"id": "E013", "question": "60-90 平米的两居", "expect": {"area_min": 60, "area_max": 90, "rooms": "2室"}},
+    {"id": "E014", "question": "90 平米以下的三居", "expect": {"area_max": 90, "rooms": "3室"}},
+    {"id": "E015", "question": "不超过 300 万的一居", "expect": {"price_max": 300, "rooms": "1室"}},
+    {"id": "E016", "question": "不低于 500 万的三居", "expect": {"price_min": 500, "rooms": "3室"}},
+
+    {"id": "E017", "question": "两居或三居都行", "expect": {"rooms": ["2室", "3室"]}},
+    {"id": "E018", "question": "开间有没有", "expect": {"rooms": ["0室", "1室"]}},
+    {"id": "E019", "question": "南十里居 两居", "expect": {"address": ["南十里居"], "rooms": "2室"}},
+    {"id": "E020", "question": "工体南路 一居室", "expect": {"address": ["工体南路"], "rooms": "1室"}},
+
+    {"id": "E021", "question": "首付 100 万想买房", "expect": {}, "forbid": ["price_min", "price_max"]},
+    {"id": "E022", "question": "500万以内，两三居都行", "expect": {"price_max": 500, "rooms": ["2室", "3室"]}},
+    {"id": "E023", "question": "预算 300 万，要两居", "expect": {"price_max": 300, "rooms": "2室"}},
+    {"id": "E024", "question": "二手房契税怎么算", "expect": {}, "forbid": ["price_min", "price_max", "rooms", "area_min"]},
+
+    {"id": "E025", "question": "三四居都可以", "expect": {"rooms": ["3室", "4室"]}},
+    {"id": "E026", "question": "两、三居都行", "expect": {"rooms": ["2室", "3室"]}},
+    {"id": "E027", "question": "一居两居都能接受", "expect": {"rooms": ["1室", "2室"]}}
+  ]
+}

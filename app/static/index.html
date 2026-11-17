@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安居乐 - 专业房产智能问答平台</title>
+  <!-- 站点图标：与顶部 logo 同款绿色线性房子（内联 SVG，免额外请求） -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300ae66' stroke-width='2.1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.2 10.6 12 3.4l8.8 7.2'/%3E%3Cpath d='M5.4 9.6V20h13.2V9.6'/%3E%3Cpath d='M9.6 20v-5.4h4.8V20'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#00ae66">
+  <!-- 高德地图 SDK：由 js/main.js 首次渲染地图时向 /api/config/map 取配置后动态注入
+       （源码里不放 Key，避免随仓库公开；换 Key 只改 .env，不用翻前端代码） -->
+  <!-- Vue 3（CDN） -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- ECharts（可视化大屏 / 走势分析） -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script>
+    // jsDelivr 偶发不可达时回退到本地副本，避免图表整块空白
+    window.echarts || document.write('<script src="/static/vendor/echarts.min.js"><\/script>');
+  </script>
+  <!-- 本地样式 -->
+  <!-- 样式按页面职责拆分；加载顺序 = 原 style.css 的行顺序，覆盖关系保持不变 -->
+  <link rel="stylesheet" href="/static/css/base.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/home.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/find.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/chat.css?v=20261117a">
+  <link rel="stylesheet" href="/static/css/auth.css?v=20261021c">
+  <link rel="stylesheet" href="/static/css/detail.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/pages.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/dashboard.css?v=20261021b">
+  <link rel="stylesheet" href="/static/css/modules.css?v=20261023f">
+  <link rel="stylesheet" href="/static/css/theme.css?v=20261021a">
+  <link rel="stylesheet" href="/static/css/home-v2.css?v=20261021a">
+</head>
+<body>
+<!-- 图标精灵：线性图标统一 24x24 viewBox，使用处写 <svg class="ic"><use href="#i-xxx"></use></svg> -->
+<svg class="icon-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.2 10.6 12 3.4l8.8 7.2"/><path d="M5.4 9.6V20h13.2V9.6"/><path d="M9.6 20v-5.4h4.8V20"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m19.6 19.6-4-4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.4 20.6c0-3.9 3.4-6.4 7.6-6.4s7.6 2.5 7.6 6.4"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.2S4.3 15.6 4.3 10.7A3.9 3.9 0 0 1 12 8.4a3.9 3.9 0 0 1 7.7 2.3c0 4.9-7.7 9.5-7.7 9.5Z"/></symbol>
+  <symbol id="i-heart-fill" viewBox="0 0 24 24"><path d="M12 20.2S4.3 15.6 4.3 10.7A3.9 3.9 0 0 1 12 8.4a3.9 3.9 0 0 1 7.7 2.3c0 4.9-7.7 9.5-7.7 9.5Z"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 4.2v15.6"/><path d="M6.4 8.2h11.2"/><path d="M6.4 8.2 3.6 14.4h5.6Z"/><path d="M17.6 8.2 14.8 14.4h5.6Z"/><path d="M8.4 19.8h7.2"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.2 2"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.6" cy="15.4" r="3.6"/><path d="m10.2 12.8 8.2-8.2"/><path d="m15.2 7.8 2.6 2.6"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14.8 4.2h3.4a1.8 1.8 0 0 1 1.8 1.8v12a1.8 1.8 0 0 1-1.8 1.8h-3.4"/><path d="m9.4 8.2-3.8 3.8 3.8 3.8"/><path d="M5.6 12h9.4"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><path d="M4.2 20.4V5.8l7.6-2.6v17.2"/><path d="M11.8 20.4h8V10l-8-4.2"/><path d="M7.2 8.4h1.8M7.2 12h1.8M7.2 15.6h1.8M15.4 12.4h1.8M15.4 16h1.8"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M9.2 3.8 3.4 6.2v13.8l5.8-2.4 5.6 2.4 5.8-2.4V3.8l-5.8 2.4Z"/><path d="M9.2 3.8v13.8M14.8 6.2v13.8"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 24 24"><rect x="4.2" y="7.8" width="15.6" height="11.4" rx="3.2"/><path d="M12 3.6v4.2"/><circle cx="9.2" cy="12.8" r="1.1"/><circle cx="14.8" cy="12.8" r="1.1"/><path d="M9.6 16.2h4.8"/></symbol>
+  <symbol id="i-yuan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="m8.8 7.8 3.2 4.2 3.2-4.2"/><path d="M8.6 13h6.8M8.6 16h6.8"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7.2h9.4M17.6 7.2H20"/><path d="M4 12h3.4M11.6 12H20"/><path d="M4 16.8h9.4M17.6 16.8H20"/><circle cx="15.5" cy="7.2" r="2.1"/><circle cx="9.5" cy="12" r="2.1"/><circle cx="15.5" cy="16.8" r="2.1"/></symbol>
+  <symbol id="i-map-pin" viewBox="0 0 24 24"><path d="M12 20.8s6.8-6.1 6.8-10.8a6.8 6.8 0 1 0-13.6 0C5.2 14.7 12 20.8 12 20.8Z"/><circle cx="12" cy="9.8" r="2.4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.6" y="5.2" width="16.8" height="15" rx="2.2"/><path d="M8.2 3.2v4M15.8 3.2v4M3.6 10h16.8"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.4 17.2h5.2"/><path d="M10.2 20.2h3.6"/><path d="M12 3.4a5.4 5.4 0 0 0-3.2 9.8v2.2h6.4V13.2A5.4 5.4 0 0 0 12 3.4Z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 4.2 2.5 5.1 5.6.8-4.1 4 1 5.6-5-2.7-5 2.7 1-5.6-4.1-4 5.6-.8Z"/></symbol>
+  <symbol id="i-star-fill" viewBox="0 0 24 24"><path d="m12 4.2 2.5 5.1 5.6.8-4.1 4 1 5.6-5-2.7-5 2.7 1-5.6-4.1-4 5.6-.8Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.6 12S6.2 6.6 12 6.6 21.4 12 21.4 12 17.8 17.4 12 17.4 2.6 12 2.6 12Z"/><circle cx="12" cy="12" r="2.7"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M20.2 5.6a2 2 0 0 0-2-2H5.8a2 2 0 0 0-2 2v8.6a2 2 0 0 0 2 2h3.4v3.6l4.4-3.6h4.6a2 2 0 0 0 2-2Z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 15.4V10a6 6 0 1 0-12 0v5.4L4.6 18h14.8L18 15.4Z"/><path d="M9.8 18a2.2 2.2 0 0 0 4.4 0"/></symbol>
+  <symbol id="i-bar-chart" viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7.2 20v-6.4M12 20V7.4M16.8 20v-9.2"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6.4" y="6.4" width="11.2" height="11.2" rx="2"/><rect x="9.6" y="9.6" width="4.8" height="4.8" rx="1"/><path d="M9.2 3.2v3.2M14.8 3.2v3.2M9.2 17.6v3.2M14.8 17.6v3.2M3.2 9.2h3.2M3.2 14.8h3.2M17.6 9.2h3.2M17.6 14.8h3.2"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="m3.4 17 5.8-5.8 3.8 3.8 7.6-7.6"/><path d="M14.8 7.4h5.8v5.8"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="m3.4 7 5.8 5.8 3.8-3.8 7.6 7.6"/><path d="M14.8 16.6h5.8v-5.8"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.6" y="9.8" width="14.8" height="10.4" rx="2.2"/><path d="M8 9.8V6.8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="m6.4 6.4 11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.6C10.1 4.9 7.2 4.6 4.2 5.1v13c3-.5 5.9-.2 7.8 1.5 1.9-1.7 4.8-2 7.8-1.5v-13c-3-.5-5.9-.2-7.8 1.5Z"/><path d="M12 6.6v13"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.6 7.4a1.8 1.8 0 0 1 1.8-1.8h3.8l2 2.4h7.4a1.8 1.8 0 0 1 1.8 1.8v8a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8Z"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M13.6 3.4H7.2a1.8 1.8 0 0 0-1.8 1.8v13.6a1.8 1.8 0 0 0 1.8 1.8h9.6a1.8 1.8 0 0 0 1.8-1.8V8.6Z"/><path d="M13.6 3.4v5.2h5"/><path d="M9 13.2h6M9 16.8h4"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M3.6 13.4h4l1.4 2.4h6l1.4-2.4h4"/><path d="M6.2 4.6h11.6l2.6 8.8v4.4a1.8 1.8 0 0 1-1.8 1.8H5.4a1.8 1.8 0 0 1-1.8-1.8v-4.4Z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.4 7h15.2"/><path d="M9.4 7V4.8h5.2V7"/><path d="M6.6 7l.9 12a1.8 1.8 0 0 0 1.8 1.7h5.4a1.8 1.8 0 0 0 1.8-1.7l.9-12"/><path d="M10.4 11v6M13.6 11v6"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><rect x="5.2" y="4.6" width="13.6" height="16" rx="2"/><path d="M9.2 4.6V3.2h5.6v1.4"/><path d="M9 10h6M9 14h6M9 18h3"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M3.2 15.6 15.6 3.2l5.2 5.2L8.4 20.8Z"/><path d="m7.4 11.4 2 2M10.4 8.4l2 2M13.4 5.4l2 2"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M4.2 4.2h6.6l9 9-6.6 6.6-9-9Z"/><circle cx="8.4" cy="8.4" r="1.2"/></symbol>
+  <symbol id="i-bed" viewBox="0 0 24 24"><path d="M3.4 19.2V10.6h17.2v8.6"/><path d="M3.4 16.2h17.2"/><path d="M6.6 10.6V7.6a1.4 1.4 0 0 1 1.4-1.4h2.4a1.4 1.4 0 0 1 1.4 1.4v3"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="m15.6 8.4-2 5.2-5.2 2 2-5.2Z"/></symbol>
+  <symbol id="i-city" viewBox="0 0 24 24"><rect x="3.6" y="6.4" width="7.2" height="14" rx="1.4"/><path d="M10.8 20.4h9.6V11l-5.2-2.8"/><path d="M6.2 10h2M6.2 13.6h2M6.2 17.2h2M14 13h2.4M14 16.6h2.4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M15.4 4.4 19.6 8.6 9.2 19H5v-4.2Z"/><path d="m13.4 6.4 4.2 4.2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.6 4.6 4.6L19 7.4"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="m8 12.2 2.8 2.8 5.2-5.6"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m11.4 3.8 1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4L5.4 9.8l4.4-1.6Z"/><path d="M17.8 14.4l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.4" y="5.4" width="17.2" height="13.2" rx="2"/><path d="m4.4 7.4 7.6 5.4 7.6-5.4"/></symbol>
+  <symbol id="i-train" viewBox="0 0 24 24"><rect x="6.2" y="3.4" width="11.6" height="13" rx="3"/><path d="M9 8h6M9 11.4h6"/><path d="M9.4 16.4 7.2 20M14.6 16.4 16.8 20"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.2 3.8h3l2 5-2.4 1.6a10.4 10.4 0 0 0 4.8 4.8l1.6-2.4 5 2v3a1.8 1.8 0 0 1-1.8 1.8A15.4 15.4 0 0 1 4.4 5.6a1.8 1.8 0 0 1 1.8-1.8Z"/></symbol>
+  <symbol id="i-calculator" viewBox="0 0 24 24"><rect x="5.2" y="3.4" width="13.6" height="17.2" rx="2.2"/><path d="M8.4 7.6h7.2"/><circle cx="9" cy="12" r=".9"/><circle cx="12" cy="12" r=".9"/><circle cx="15" cy="12" r=".9"/><circle cx="9" cy="16" r=".9"/><circle cx="12" cy="16" r=".9"/><circle cx="15" cy="16" r=".9"/></symbol>
+  <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.6a8.4 8.4 0 0 0 0 16.8c1.4 0 1.8-1 1.4-2-.4-1.3.4-2.2 1.8-2.2h1.5a3.6 3.6 0 0 0 3.6-3.6c0-4.9-3.9-9-8.3-9Z"/><circle cx="8" cy="9" r="1.1"/><circle cx="12" cy="7.4" r="1.1"/><circle cx="15.6" cy="9.8" r="1.1"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.4 20.8 19.4H3.2Z"/><path d="M12 9.8v4.2"/><circle cx="12" cy="16.8" r=".9"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.8 12a7.8 7.8 0 1 1-2.4-5.6"/><path d="M19.8 4.6v5.2h-5.2"/></symbol>
+</svg>
+<div id="app">
+    <!-- 顶部导航 -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon"><svg class="ic"><use href="#i-home"></use></svg></span>
+          <span class="logo-text">安居乐</span>
+        </div>
+        <nav class="nav">
+          <template v-for="item in visibleNavItems" :key="item.key">
+            <div v-if="!item.children"
+                 class="nav-item" :class="{ active: tab === item.key }"
+                 @click="item.external ? openAdmin() : switchTab(item.key)">
+              {{ item.label }}
+            </div>
+            <div v-else class="nav-item has-dropdown"
+                 :class="{ active: item.children.some(c => c.key === tab) }"
+                 @mouseenter="activeDropdown = item.key"
+                 @mouseleave="activeDropdown = null">
+              {{ item.label }}
+              <svg class="dropdown-arrow" viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                <path d="M7 10l5 5 5-5z"/>
+              </svg>
+              <div class="nav-dropdown" v-show="activeDropdown === item.key">
+                <div v-for="c in item.children" :key="c.key"
+                     class="nav-dropdown-item"
+                     :class="{ active: tab === c.key }"
+                     @click.stop="switchTab(c.key); activeDropdown = null">
+                  {{ c.label }}
+                </div>
+              </div>
+            </div>
+          </template>
+        </nav>
+        <div class="header-right">
+          <button class="menu-toggle" @click="mobileMenuOpen = !mobileMenuOpen" aria-label="菜单">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="search-box">
+            <span class="icon"><svg class="ic"><use href="#i-search"></use></svg></span>
+            <input type="text" v-model="headerKw" @keyup.enter="doSearchFromHeader" placeholder="搜索小区、地址...">
+          </div>
+          <!-- 站内消息：回复通知 -->
+          <div class="msg-btn" v-show="currentUser" :class="{ active: notifyOpen }"
+               @click="toggleNotifyPanel" title="消息通知">
+            <svg class="ic"><use href="#i-bell"></use></svg>
+            <span class="msg-badge" v-if="notifyUnread > 0">{{ notifyUnread > 99 ? '99+' : notifyUnread }}</span>
+          </div>
+          <div class="user-btn" @click="showUserMenu = !showUserMenu">
+            <span v-if="currentUser">{{ avatarText }}</span>
+            <span v-else><svg class="ic"><use href="#i-user"></use></svg></span>
+          </div>
+          <div v-if="notifyOpen" class="notify-mask" @click="notifyOpen = false"></div>
+          <div v-if="notifyOpen" class="notify-panel">
+            <div class="np-head">
+              <div class="np-title-row">
+                <b>消息通知</b>
+                <span class="np-unread" v-if="notifyUnread">{{ notifyUnread }} 条未读</span>
+              </div>
+              <div class="np-head-actions">
+                <button v-if="notifyUnread" @click="markAllNotifyRead">全部已读</button>
+                <button @click="notifyOpen = false">关闭</button>
+              </div>
+            </div>
+            <div class="np-list">
+              <div class="np-item" :class="{ unread: !n.is_read }" v-for="n in notifyList" :key="n.id"
+                   @click="openNotification(n)">
+                <div class="np-avatar">{{ (n.from_user_name || '匿').slice(0, 1).toUpperCase() }}</div>
+                <div class="np-body">
+                  <div class="np-item-title">{{ n.title }}</div>
+                  <div class="np-item-content">{{ n.content }}</div>
+                  <div class="np-meta">
+                    <span class="np-house" v-if="n.house_title">{{ n.house_title }}</span>
+                    <span class="np-time">{{ formatNotifyTime(n.create_time) }}</span>
+                  </div>
+                </div>
+                <span class="np-dot" v-if="!n.is_read"></span>
+              </div>
+              <p class="np-empty" v-if="!notifyList.length && !notifyLoading">暂无消息，收到回复后会在这里提醒你</p>
+              <p class="np-empty" v-if="notifyLoading && !notifyList.length">加载中…</p>
+            </div>
+            <div class="np-foot" v-if="notifyTotal > notifyList.length">
+              <button @click="loadMoreNotify" :disabled="notifyLoading">
+                {{ notifyLoading ? '加载中…' : '加载更多' }}
+              </button>
+            </div>
+          </div>
+          <div v-if="showUserMenu" class="user-dropdown" @click.self="showUserMenu = false">
+            <div v-if="currentUser" class="user-dropdown-inner">
+              <div class="user-info-row">
+                <div class="user-avatar-big">{{ avatarText }}</div>
+                <div>
+                  <div class="user-name">
+                    {{ displayName }}
+                    <span v-if="canManage" class="admin-tag">管理员</span>
+                  </div>
+                  <div class="user-email">{{ currentUser.email || '未设置邮箱' }}</div>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item" @click="switchTab('favorites'); showUserMenu = false;"><svg class="ic"><use href="#i-heart"></use></svg> 我的收藏</div>
+              <div class="dropdown-item" @click="switchTab('compare'); showUserMenu = false;"><svg class="ic"><use href="#i-scale"></use></svg> 房源对比</div>
+              <div class="dropdown-item" @click="switchTab('history'); showUserMenu = false;"><svg class="ic"><use href="#i-clock"></use></svg> 浏览足迹</div>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item pwd-entry" @click="openPwdModal"><svg class="ic"><use href="#i-key"></use></svg> 修改密码</div>
+              <div class="dropdown-item logout" @click="doLogout"><svg class="ic"><use href="#i-logout"></use></svg> 退出登录</div>
+            </div>
+            <div v-else class="user-dropdown-inner">
+              <div class="dropdown-title">欢迎来到安居乐</div>
+              <div class="dropdown-desc">登录后可收藏房源、对比房源</div>
+              <button class="btn-primary" style="width:100%;margin:10px 0;" @click="openLoginModal">登录</button>
+              <button class="btn-outline" style="width:100%;" @click="openRegisterModal">注册新账号</button>
+              <div class="dropdown-divider"></div>
+              <div class="dropdown-item pwd-entry" @click="showUserMenu = false; openPwdModal()"><svg class="ic"><use href="#i-key"></use></svg> 修改密码</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mobile-nav" v-show="mobileMenuOpen">
+        <div v-for="item in visibleNavItems" :key="'m'+item.key"
+             class="mobile-nav-item" :class="{ active: tab === item.key }"
+             @click="item.external ? openAdmin() : switchTab(item.key)">
+          {{ item.label }}
+        </div>
+      </div>
+    </header>
+
+    <!-- 主内容 -->
+    <main class="main">
+      <!-- 首页 -->
+      <div v-if="tab === 'home'">
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="hero-eyebrow"><svg class="ic"><use href="#i-sparkles"></use></svg> RAG 房产智能问答</div>
+            <h1>找房先问一句，<br>让 AI 把 <em>{{ stats.totalHouses.toLocaleString() }}</em> 套房讲清楚</h1>
+            <p class="hero-sub">真实小区与坐标 · 语义检索 + 大模型生成 · 每个结论都能追溯回房源</p>
+            <div class="hero-search">
+              <span class="hs-city">北京<svg class="hs-caret" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg></span>
+              <span class="hs-divider"></span>
+              <input type="text" v-model="searchKw" @keyup.enter="doSearch" placeholder="小区、商圈或区域，如「望京」「南北通透」">
+              <button @click="doSearch"><svg class="ic"><use href="#i-search"></use></svg> 搜索房源</button>
+            </div>
+            <div class="hero-chips">
+              <span class="hc-label">热门搜索</span>
+              <button @click="searchKw = '朝阳区'; doSearch()">朝阳区</button>
+              <button @click="searchKw = '南北通透'; doSearch()">南北通透</button>
+              <button @click="searchKw = '地铁'; doSearch()">近地铁</button>
+              <button class="hc-ai" @click="switchTab('chat')"><svg class="ic"><use href="#i-bot"></use></svg> 500 万怎么选</button>
+            </div>
+          </div>
+          <div class="hero-kpis">
+            <div class="hk">
+              <div class="hk-num">{{ stats.totalHouses.toLocaleString() }}<i>套</i></div>
+              <div class="hk-label">在售房源</div>
+            </div>
+            <div class="hk">
+              <div class="hk-num">{{ stats.totalRegions }}<i>个</i></div>
+              <div class="hk-label">覆盖行政区</div>
+            </div>
+            <div class="hk">
+              <div class="hk-num">{{ stats.avgPrice }}<i>万</i></div>
+              <div class="hk-label">平均总价</div>
+            </div>
+            <div class="hk hk-ai">
+              <div class="hk-num">AI<i>答</i></div>
+              <div class="hk-label">问答式找房</div>
+            </div>
+          </div>
+        </section>
+
+        <nav class="quick-nav">
+          <div class="qn" @click="openFind('list')">
+            <span class="qn-ic green"><svg class="ic"><use href="#i-building"></use></svg></span>
+            <span class="qn-txt"><b>房源列表</b><i>{{ stats.totalHouses.toLocaleString() }} 套在售</i></span>
+          </div>
+          <div class="qn" @click="openFind('map')">
+            <span class="qn-ic blue"><svg class="ic"><use href="#i-map"></use></svg></span>
+            <span class="qn-txt"><b>地图找房</b><i>按区域定位</i></span>
+          </div>
+          <div class="qn" @click="switchTab('chat')">
+            <span class="qn-ic orange"><svg class="ic"><use href="#i-bot"></use></svg></span>
+            <span class="qn-txt"><b>AI 智能问答</b><i>房产顾问在线解答</i></span>
+          </div>
+          <div class="qn" @click="openPrice('estimate')">
+            <span class="qn-ic purple"><svg class="ic"><use href="#i-yuan"></use></svg></span>
+            <span class="qn-txt"><b>房价估算</b><i>智能评估房屋价格</i></span>
+          </div>
+          <div class="qn" v-if="canManage" @click="openAdmin()">
+            <span class="qn-ic cyan"><svg class="ic"><use href="#i-sliders"></use></svg></span>
+            <span class="qn-txt"><b>管理后台</b><i>独立站点 · 房源 / 用户 / 评论</i></span>
+          </div>
+        </nav>
+
+        <section class="region-block" v-if="homeRegions && homeRegions.length">
+          <div class="block-head">
+            <h2>按区域找房</h2>
+            <span class="more" @click="openFind('map')">地图上看分布 →</span>
+          </div>
+          <div class="region-grid">
+            <button class="region-chip" v-for="r in homeRegions" :key="r.name"
+                    @click="searchKw = r.name; doSearch()">
+              <b>{{ r.name }}</b>
+              <i>{{ r.count.toLocaleString() }} 套</i>
+            </button>
+          </div>
+        </section>
+
+        <section class="block">
+          <div class="block-head">
+            <h2>热门房源</h2>
+            <span class="block-note">按上架时间排序</span>
+            <span class="more" @click="openFind('list')">查看全部 →</span>
+          </div>
+          <div class="hgrid">
+            <article class="hcard" v-for="house in hotHouses" :key="house.id" @click="viewHouse(house)">
+              <div class="hc-media">
+                <img :src="house.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="house.title" loading="lazy">
+                <span class="hc-badge" v-if="house.rent_type">{{ house.rent_type }}</span>
+              </div>
+              <div class="hc-body">
+                <h3 class="hc-title">{{ house.title }}</h3>
+                <div class="hc-meta">
+                  <span>{{ house.rooms }}</span><i>·</i>
+                  <span>{{ house.area }}</span><i>·</i>
+                  <span>{{ house.direction }}</span>
+                </div>
+                <div class="hc-loc"><svg class="ic"><use href="#i-map-pin"></use></svg>{{ house.address || house.block || house.region }}</div>
+                <div class="hc-foot">
+                  <span class="hc-price">{{ formatPrice(house.price) }}<em>万</em></span>
+                  <span class="hc-date">{{ house.publish_date || '近期上架' }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="block" v-if="recHouses.length">
+          <div class="block-head">
+            <h2>智能推荐房源<em class="block-flag">协同过滤 + 用户画像</em></h2>
+            <span class="more" @click="switchTab('recommend')">完整推荐（含匹配理由）→</span>
+          </div>
+          <div class="hgrid">
+            <article class="hcard" v-for="house in homeRecHouses" :key="'rec'+house.id" @click="viewHouse(house)">
+              <div class="hc-media">
+                <img :src="house.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="house.title" loading="lazy">
+                <span class="hc-badge ai">猜你喜欢</span>
+              </div>
+              <div class="hc-body">
+                <h3 class="hc-title">{{ house.title }}</h3>
+                <div class="hc-meta">
+                  <span>{{ house.rooms }}</span><i>·</i>
+                  <span>{{ house.area }}</span><i>·</i>
+                  <span>{{ house.direction }}</span>
+                </div>
+                <div class="hc-loc"><svg class="ic"><use href="#i-map-pin"></use></svg>{{ house.address || house.block || house.region }}</div>
+                <div class="hc-foot">
+                  <span class="hc-price">{{ formatPrice(house.price) }}<em>万</em></span>
+                  <span class="hc-date"><svg class="ic"><use href="#i-bulb"></use></svg> 智能匹配</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <!-- 找房（列表视图） -->
+      <div v-else-if="tab === 'find' && findView === 'list'">
+        <div class="subview-bar">
+          <div class="subview-tabs">
+            <button class="subview-tab active" @click="setFindView('list')">列表</button>
+            <button class="subview-tab" @click="setFindView('map')">地图</button>
+          </div>
+          <span class="subview-note">共 {{ totalHouses }} 套房源，切换地图可按区域查看分布</span>
+        </div>
+        <div class="filter-bar">
+          <select v-model="filter.region" @change="housePage = 1; loadHouses()">
+            <option value="">全部区域</option>
+            <option v-for="r in regions" :key="r" :value="r">{{ r }}</option>
+          </select>
+          <select v-model="filter.rooms" @change="housePage = 1; loadHouses()">
+            <option value="">户型不限</option>
+            <option value="一居">一居</option>
+            <option value="二居">二居</option>
+            <option value="三居">三居</option>
+            <option value="四居">四居及以上</option>
+          </select>
+          <select v-model="filter.priceRange" @change="housePage = 1; loadHouses()">
+            <option value="">价格不限</option>
+            <option value="0-300">300万以下</option>
+            <option value="300-500">300-500万</option>
+            <option value="500-800">500-800万</option>
+            <option value="800-1000">800-1000万</option>
+            <option value="1000-99999">1000万以上</option>
+          </select>
+          <span class="count">共 <b>{{ totalHouses }}</b> 套房源</span>
+        </div>
+        <div class="house-grid">
+          <div v-for="house in houses" :key="house.id"
+               class="house-card" @click="viewHouse(house)">
+            <div class="img-wrap">
+              <img :src="house.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="house.title" style="width:100%;height:100%;object-fit:cover;">
+              <div class="price-tag">{{ formatPrice(house.price) }} <small>万</small></div>
+              <div class="tag">{{ house.rent_type }}</div>
+            </div>
+            <div class="info">
+              <div class="title">{{ house.title }}</div>
+              <div class="desc">
+                <span>{{ house.rooms }}</span>
+                <span>{{ house.area }}</span>
+                <span>{{ house.direction }}</span>
+              </div>
+              <div class="address"><svg class="ic"><use href="#i-map-pin"></use></svg> {{ house.address }}</div>
+              <div class="bottom">
+                <span class="region">{{ house.region }}</span>
+                <span class="views"><svg class="ic"><use href="#i-calendar"></use></svg> {{ house.publish_date || '近期上架' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-if="houses.length === 0" class="empty-state">
+          <div class="icon"><svg class="ic"><use href="#i-search"></use></svg></div>
+          <h3>暂无符合条件的房源</h3>
+          <p>试试调整筛选条件</p>
+        </div>
+        <div v-else class="pagination" style="margin-top:24px;">
+          <button @click="changeHousePage(-1)" :disabled="housePage <= 1"
+            :style="housePage <= 1 ? {opacity:.5, cursor:'not-allowed'} : {}">上一页</button>
+          <span class="pg-info">第 <b>{{ housePage }}</b> / {{ houseTotalPages }} 页</span>
+          <button @click="changeHousePage(1)" :disabled="housePage >= houseTotalPages"
+            :style="housePage >= houseTotalPages ? {opacity:.5, cursor:'not-allowed'} : {}">下一页</button>
+          <span class="pg-jump">
+            跳至
+            <input type="number" min="1" :max="houseTotalPages" v-model="pageJump"
+                   @keyup.enter="jumpHousePage" placeholder="页码" />
+            页
+            <button class="pg-go" @click="jumpHousePage">确定</button>
+          </span>
+        </div>
+      </div>
+
+      <!-- 找房（地图视图） -->
+      <div v-else-if="tab === 'find' && findView === 'map'">
+        <div class="subview-bar">
+          <div class="subview-tabs">
+            <button class="subview-tab" @click="setFindView('list')">列表</button>
+            <button class="subview-tab active" @click="setFindView('map')">地图</button>
+          </div>
+          <span class="subview-note">选择地区后地图自动定位到该区中心</span>
+        </div>
+        <div class="map-page">
+        <div class="map-sidebar">
+          <div class="map-sidebar-header">
+            <h3><svg class="ic"><use href="#i-map-pin"></use></svg> 地图找房</h3>
+            <select v-model="mapRegion" @change="loadMapHouses">
+              <option value="">全部区域</option>
+              <option v-for="r in regions" :key="r" :value="r">{{ r === '北京' ? '北京（未细分区域）' : r }}</option>
+            </select>
+            <div style="margin-top:8px;font-size:12px;color:#888;">
+              共 <b style="color:#00ae66;">{{ mapHousesTotal }}</b> 套房源，当前页 <b style="color:#00ae66;">{{ mapHouses.length }}</b> 套
+            </div>
+            <div v-if="mapHousesAll.length && mapHousesAll.length < mapHousesTotal"
+                 style="margin-top:4px;font-size:11px;color:#b0bab5;">
+              地图按 {{ mapHousesAll.length }} 套均匀抽样展示
+            </div>
+          </div>
+          <div class="map-list">
+            <div v-for="(house, i) in mapHouses" :key="house.id"
+                 class="map-list-item" @click="focusOnMap(house, i)">
+              <div class="thumb">
+                <img :src="house.image_url" :alt="house.title" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+              </div>
+              <div class="info">
+                <div class="t">{{ house.title }}</div>
+                <div class="p" style="color:#ff5e00;">{{ formatPrice(house.price) }} <small>万</small></div>
+                <div class="m">{{ house.rooms }} · {{ house.area }} · {{ house.region }}</div>
+                <div class="ml-detail-btn" @click.stop="viewHouse(house)">
+                  <span>查看详情</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="map-pagination" style="padding:10px 12px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#666;">
+            <button @click="changeMapPage(-1)" :disabled="mapPage === 1" style="padding:6px 14px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;" :style="mapPage===1?{opacity:.5,cursor:'not-allowed'}:{}">上一页</button>
+            <span>第 {{ mapPage }} / {{ Math.ceil(mapHousesAll.length / mapPageSize) || 1 }} 页</span>
+            <button @click="changeMapPage(1)" :disabled="mapPage * mapPageSize >= mapHousesAll.length" style="padding:6px 14px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;" :style="mapPage * mapPageSize >= mapHousesAll.length ? {opacity:.5, cursor:'not-allowed'} : {}">下一页</button>
+          </div>
+        </div>
+        <div class="map-container">
+          <div id="mapContainer"></div>
+          <div v-if="!mapLoaded" class="map-loading">
+            <div class="big"><svg class="ic"><use href="#i-map"></use></svg></div>
+            <div>地图加载中...</div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- AI 问答 -->
+      <div v-else-if="tab === 'chat' && chatView === 'chat'" class="chat-page">
+        <div class="chat-header">
+          <div class="chat-avatar"><svg class="ic"><use href="#i-bot"></use></svg></div>
+          <div>
+            <h2>房产智能问答助手</h2>
+            <p>基于 RAG 技术，结合房源数据和知识库为您解答</p>
+          </div>
+          <div class="view-switch">
+            <button class="vs-btn active" @click="setChatView('chat')">智能问答</button>
+            <button class="vs-btn" @click="setChatView('kb')">知识库</button>
+          </div>
+          <!-- 清空会话上下文：不点的话后端会一直沿用同一个 thread（多轮记忆靠它） -->
+          <button class="chat-new-btn" @click="newChat" :disabled="chatLoading"
+                  title="开始新会话（清空上文，AI 不再引用之前的对话）">＋ 新对话</button>
+        </div>
+        <div class="chat-body" ref="chatBodyRef">
+          <div v-for="(msg, i) in messages" :key="i" class="msg" :class="msg.role">
+            <div class="avatar">
+              <svg v-if="msg.role === 'user'" class="ic"><use href="#i-user"></use></svg>
+              <svg v-else class="ic"><use href="#i-bot"></use></svg>
+            </div>
+            <div class="msg-main">
+              <div class="bubble">
+                <span>{{ msg.content }}</span><span v-if="msg.streaming" class="stream-cursor">▋</span>
+                <div v-if="msg.hint" class="hint">{{ msg.hint }}</div>
+              </div>
+              <!-- 地图跟着这条回答走，而不是堆在对话末尾 -->
+              <div v-if="(msg.mapHouses && msg.mapHouses.length) || (msg.externalPois && msg.externalPois.length)"
+                   class="chat-map-card">
+                <div class="chat-map-head">
+                  <svg class="ic"><use href="#i-map"></use></svg>
+                  <template v-if="msg.mapHouses && msg.mapHouses.length">
+                    本次回答涉及 {{ msg.mapHouses.length }} 套房源的位置
+                  </template>
+                  <template v-else>
+                    外部地理数据：{{ msg.externalPois.length }} 个商圈 / 地铁（不含房源价格）
+                  </template>
+                  <span class="chat-map-tip">点击标记查看详情</span>
+                </div>
+                <div :id="'chatMap-' + i" class="chat-map"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-suggestions">
+          <span v-for="q in suggestions" :key="q" @click="sendChat(q)">{{ q }}</span>
+        </div>
+        <div class="chat-input-area">
+          <textarea v-model="chatInput" @keyup.enter.exact="sendChat()"
+                    placeholder="请输入您的问题，如：朝阳区有哪些两居室？"></textarea>
+          <button @click="sendChat()" :disabled="chatLoading || !chatInput.trim()">发送</button>
+        </div>
+      </div>
+
+      <!-- 推荐（协同过滤 + 用户画像） -->
+      <div v-else-if="tab === 'recommend'">
+        <div class="recommend-header">
+          <div class="section-title" style="margin:0;"><svg class="ic"><use href="#i-bulb"></use></svg> 为您推荐</div>
+          <div class="recommend-desc">
+            机器学习推荐：<b>协同过滤</b>（ItemCF + UserCF）+ <b>用户画像</b>，依据收藏/浏览/对比/评论行为匹配；
+            没有行为数据时展示平台热门
+          </div>
+        </div>
+
+        <!-- 用户画像卡片 -->
+        <div v-if="userProfile" class="profile-card">
+          <div class="profile-left">
+            <div class="profile-avatar">{{ (displayName || (currentUser ? userProfile.username : '游') || 'U').charAt(0).toUpperCase() }}</div>
+            <div class="profile-info">
+              <div class="profile-name">{{ displayName || (currentUser ? userProfile.username : '游客') }}
+                <span v-if="currentUser" class="profile-role"
+                      :class="isAdmin ? 'role-admin' : 'role-user'">
+                  {{ isAdmin ? '管理员' : '普通用户' }}
+                </span>
+                <span v-if="userProfile.profile_label" class="profile-tag">{{ userProfile.profile_label }}</span>
+              </div>
+              <div v-if="isAdmin" class="profile-admin-note">管理员账号不参与个性化推荐，当前展示平台热门房源</div>
+              <div class="profile-behaviors">
+                <span><svg class="ic"><use href="#i-star"></use></svg> 收藏 {{ (userProfile.behavior_count && userProfile.behavior_count.favorite) || 0 }}</span>
+                <span><svg class="ic"><use href="#i-eye"></use></svg> 浏览 {{ (userProfile.behavior_count && userProfile.behavior_count.browse) || 0 }}</span>
+                <span><svg class="ic"><use href="#i-scale"></use></svg> 对比 {{ (userProfile.behavior_count && userProfile.behavior_count.compare) || 0 }}</span>
+                <span><svg class="ic"><use href="#i-message"></use></svg> 评论 {{ (userProfile.behavior_count && userProfile.behavior_count.comment) || 0 }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-right">
+            <div class="profile-pref" v-if="userProfile.preferred_regions && userProfile.preferred_regions.length">
+              <span class="pp-label">偏好区域</span>
+              <span class="pp-chip" v-for="r in userProfile.preferred_regions" :key="r">{{ r }}</span>
+            </div>
+            <div class="profile-pref" v-if="userProfile.price_range && userProfile.price_range[0]">
+              <span class="pp-label">价格区间</span>
+              <span class="pp-chip">{{ Math.round(userProfile.price_range[0]) }} - {{ Math.round(userProfile.price_range[1]) }} 万</span>
+            </div>
+            <div class="profile-pref" v-if="userProfile.preferred_direction && userProfile.preferred_direction.length">
+              <span class="pp-label">偏好朝向</span>
+              <span class="pp-chip" v-for="d in userProfile.preferred_direction" :key="d">{{ d }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="recStrategy" class="rec-strategy">
+          推荐算法：<b>{{ recStrategy === 'item_cf' ? '协同过滤（ItemCF + UserCF 混合）' : '冷启动 · 平台热门' }}</b>
+          <span v-if="userProfile && userProfile.top_interactions && userProfile.top_interactions.length"
+                style="color:#999;font-weight:normal;">
+            · 基于您的 {{ userProfile.top_interactions.length }} 条行为偏好
+          </span>
+        </div>
+
+        <div class="house-grid">
+          <div v-for="house in recHouses" :key="'r'+house.id"
+               class="house-card" @click="viewHouse(house)">
+            <div class="img-wrap">
+              <img :src="house.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="house.title" style="width:100%;height:100%;object-fit:cover;">
+              <div class="price-tag">{{ formatPrice(house.price) }} <small>万</small></div>
+              <div class="tag">推荐</div>
+            </div>
+            <div class="info">
+              <div class="title">{{ house.title }}</div>
+              <div class="desc">
+                <span>{{ house.rooms }}</span>
+                <span>{{ house.area }}</span>
+                <span>{{ house.direction }}</span>
+              </div>
+              <div class="address"><svg class="ic"><use href="#i-map-pin"></use></svg> {{ house.address }}</div>
+              <div class="bottom">
+                <span class="region">{{ house.region }}</span>
+                <span class="views" v-if="house.rec_reason"><svg class="ic"><use href="#i-bulb"></use></svg> {{ house.rec_reason }}</span>
+                <span class="views" v-else-if="house.reason"><svg class="ic"><use href="#i-bulb"></use></svg> {{ house.reason }}</span>
+                <span class="views" v-else><svg class="ic"><use href="#i-bulb"></use></svg> 智能匹配</span>
+              </div>
+              <div class="match-score" v-if="house.score">
+                <div class="score-bar">
+                  <div class="score-fill" :style="{width: Math.min(house.score, 100) + '%'}"></div>
+                </div>
+                <span class="score-text">匹配度 {{ Math.round(house.score) }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 收藏 -->
+      <div v-else-if="tab === 'favorites'">
+        <div class="section-title"><svg class="ic"><use href="#i-heart"></use></svg> 我的收藏 <span class="count" style="font-size:13px;color:#888;font-weight:normal;">{{ favHouses.length }} 套</span></div>
+        <div v-if="favHouses.length === 0" class="empty-state">
+          <div class="icon"><svg class="ic"><use href="#i-heart"></use></svg></div>
+          <h3>还没有收藏的房源</h3>
+          <p>去房源列表逛逛吧</p>
+        </div>
+        <div v-else class="house-grid">
+          <div v-for="house in favHouses" :key="'f'+house.id"
+               class="house-card" @click="viewHouse(house)">
+            <div class="img-wrap">
+              <img :src="house.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="house.title" style="width:100%;height:100%;object-fit:cover;">
+              <div class="price-tag">{{ formatPrice(house.price) }} <small>万</small></div>
+            </div>
+            <div class="info">
+              <div class="title">{{ house.title }}</div>
+              <div class="desc">
+                <span>{{ house.rooms }}</span>
+                <span>{{ house.area }}</span>
+                <span>{{ house.direction }}</span>
+              </div>
+              <div class="address"><svg class="ic"><use href="#i-map-pin"></use></svg> {{ house.address }}</div>
+              <div class="bottom">
+                <span class="region">{{ house.region }}</span>
+                <span class="views" style="color:#ff5e00;">已收藏</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 对比 -->
+      <div v-else-if="tab === 'compare'">
+        <div class="section-title"><svg class="ic"><use href="#i-scale"></use></svg> 房源对比 <span class="count" style="font-size:13px;color:#888;font-weight:normal;">{{ compareHouses.length }} 套</span></div>
+        <div v-if="compareHouses.length < 2" class="empty-state">
+          <div class="icon"><svg class="ic"><use href="#i-scale"></use></svg></div>
+          <h3>请至少添加 2 套房源进行对比</h3>
+          <p>在房源详情页点击"加入对比"</p>
+        </div>
+        <div v-else>
+          <!-- 结论条：先给答案，再给依据 -->
+          <div class="cmp-verdict" v-if="compareVerdict">
+            <div class="cmp-verdict-badge">建议</div>
+            <div class="cmp-verdict-body">
+              <div class="cmp-verdict-head">{{ compareVerdict.headline }}</div>
+              <div class="cmp-verdict-reasons">
+                <span v-for="r in compareVerdict.reasons" :key="r" class="cmp-chip">{{ r }}</span>
+              </div>
+              <div class="cmp-verdict-tradeoff" v-if="compareVerdict.tradeoff">
+                需要权衡：{{ compareVerdict.tradeoff }}
+              </div>
+              <div class="cmp-verdict-basis">{{ compareVerdict.basis }}</div>
+            </div>
+          </div>
+
+          <div class="cmp-wrap">
+            <table class="cmp-table">
+              <thead>
+                <tr>
+                  <th class="cmp-corner">对比项</th>
+                  <th v-for="h in compareHouses" :key="h.id"
+                      class="cmp-house-col"
+                      :class="{ 'is-best': compareVerdict && compareVerdict.recommended_id === h.id }">
+                    <div class="cmp-house">
+                      <span class="cmp-recommend" v-if="compareVerdict && compareVerdict.recommended_id === h.id">推荐</span>
+                      <img v-if="h.image_url" :src="h.image_url" class="cmp-thumb" :alt="h.title">
+                      <div class="cmp-house-title" :title="h.title">{{ h.title }}</div>
+                      <div class="cmp-house-sub">{{ h.block || h.region || '—' }}</div>
+                      <div class="cmp-house-actions">
+                        <button class="cmp-mini" @click="viewHouse(h)">详情</button>
+                        <button class="cmp-mini cmp-mini-danger" @click="toggleCompare(h)">移除</button>
+                      </div>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <template v-for="sec in compareSections" :key="sec.title">
+                  <tr class="cmp-section-row">
+                    <td :colspan="compareHouses.length + 1">
+                      {{ sec.title }}
+                      <span class="cmp-section-note" v-if="sec.allSame">各项一致</span>
+                    </td>
+                  </tr>
+                  <tr class="cmp-merged-row" v-if="sec.merged.length">
+                    <td class="cmp-merged-label">{{ compareHouses.length }} 套一致</td>
+                    <td :colspan="compareHouses.length" class="cmp-merged-values">
+                      <span v-for="m in sec.merged" :key="m" class="cmp-merged-item">{{ m }}</span>
+                    </td>
+                  </tr>
+                  <tr v-for="row in sec.rows" :key="row.label" :class="{ 'cmp-row-strong': row.strong }">
+                    <td class="cmp-row-label">
+                      {{ row.label }}
+                      <small v-if="row.hint">{{ row.hint }}</small>
+                    </td>
+                    <td v-for="(val, idx) in row.values" :key="idx"
+                        class="cmp-cell"
+                        :class="{ 'is-best': row.bestId && compareHouses[idx].id === row.bestId, 'is-long': row.long }">
+                      <span class="cmp-value">{{ val }}</span>
+                      <span v-if="row.bestId && compareHouses[idx].id === row.bestId" class="cmp-best-tag">最优</span>
+                      <span v-if="row.label === '单价' && compareHouses[idx].vs_region_pct !== null && compareHouses[idx].vs_region_pct !== undefined"
+                            class="cmp-vs" :class="compareHouses[idx].vs_region_pct > 0 ? 'up' : 'down'">
+                        {{ compareHouses[idx].vs_region_pct > 0 ? '高于' : '低于' }}本区均价 {{ Math.abs(compareHouses[idx].vs_region_pct) }}%
+                      </span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 房价（估价视图） -->
+      <div v-else-if="tab === 'price' && priceView === 'estimate'">
+        <div class="subview-bar">
+          <div class="subview-tabs">
+            <button class="subview-tab active" @click="setPriceView('estimate')">房价估算</button>
+            <button class="subview-tab" @click="setPriceView('trend')">走势分析</button>
+          </div>
+          <span class="subview-note">基于区域 / 面积 / 户型等因素的机器学习估价</span>
+        </div>
+        <div class="estimate-card est-wide">
+          <div class="est-form-col">
+          <h2><svg class="ic"><use href="#i-yuan"></use></svg> 智能房价估算</h2>
+          <div class="form-row">
+            <div class="form-group">
+              <label>区域</label>
+              <select v-model="estForm.region">
+                <option v-for="r in regions" :key="r" :value="r">{{ r }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>面积（㎡）</label>
+              <input type="number" v-model="estForm.area" placeholder="请输入面积">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>户型</label>
+              <select v-model="estForm.rooms">
+                <option value="1室1厅">1室1厅</option>
+                <option value="1室2厅">1室2厅</option>
+                <option value="2室1厅">2室1厅</option>
+                <option value="2室2厅">2室2厅</option>
+                <option value="3室1厅">3室1厅</option>
+                <option value="3室2厅">3室2厅</option>
+                <option value="4室2厅">4室2厅</option>
+                <option value="5室2厅">5室2厅</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>朝向</label>
+              <select v-model="estForm.direction">
+                <option value="南北">南北通透</option>
+                <option value="南">朝南</option>
+                <option value="东南">东南</option>
+                <option value="西南">西南</option>
+                <option value="东">朝东</option>
+                <option value="西">朝西</option>
+                <option value="北">朝北</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>装修</label>
+              <select v-model="estForm.decoration">
+                <option value="毛坯">毛坯</option>
+                <option value="简装">简装</option>
+                <option value="精装">精装</option>
+                <option value="豪装">豪华装修</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>楼层</label>
+              <select v-model="estForm.floor">
+                <option value="低楼层">低楼层</option>
+                <option value="中楼层">中楼层</option>
+                <option value="高楼层">高楼层</option>
+                <option value="顶层">顶层</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" style="width:100%;height:44px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;"
+                  @click="doEstimate" :disabled="estLoading">{{ estLoading ? '估算中...' : '开始估算' }}</button>
+
+          <div class="est-samples">
+            <span class="es-label">试试典型房源</span>
+            <div class="es-chips">
+              <button @click="applyEstSample('刚需两居')">朝阳 89㎡ 两居</button>
+              <button @click="applyEstSample('改善三居')">海淀 128㎡ 三居</button>
+              <button @click="applyEstSample('小户型')">丰台 55㎡ 一居</button>
+            </div>
+          </div>
+          </div>
+
+          <!-- 右侧：区域行情 / 最近估价 / 估价方法（没估算时也有内容，不空着） -->
+          <aside class="est-side">
+            <div class="emc">
+              <div class="emc-head">
+                <b>{{ estForm.region }} 行情</b>
+                <span class="emc-badge" v-if="estRegionStat">在挂 {{ estRegionStat.count.toLocaleString() }} 套</span>
+              </div>
+              <div class="emc-main" v-if="estRegionStat">
+                <div class="emc-num">{{ estRegionStat.avg.toLocaleString() }}<small>万</small></div>
+                <div class="emc-desc">
+                  本区平均总价 · 全市 {{ estRegionStat.cityAvg.toLocaleString() }} 万
+                  <span class="emc-diff" :class="estRegionStat.diffPct >= 0 ? 'up' : 'down'">
+                    {{ estRegionStat.diffPct >= 0 ? '高' : '低' }} {{ Math.abs(estRegionStat.diffPct) }}%
+                  </span>
+                </div>
+                <div class="emc-share">占全市在挂房源 {{ estRegionStat.share }}%</div>
+              </div>
+              <div class="emc-loading" v-else>正在读取区域行情…</div>
+
+              <div class="emc-rank" v-if="estRegionRank.length">
+                <div class="emc-rank-title">各区平均总价（点选切换）</div>
+                <div class="emc-rank-item" v-for="r in estRegionRank" :key="r.name"
+                     :class="{ active: r.name === estForm.region }" @click="estForm.region = r.name">
+                  <span class="emc-rank-name">{{ r.name }}</span>
+                  <span class="emc-rank-bar"><i :style="{ width: r.pct + '%' }"></i></span>
+                  <span class="emc-rank-val">{{ r.value }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="eh">
+              <div class="eh-head">
+                <b>最近估价</b>
+                <button v-if="estHistory.length" @click="clearEstHistory">清空</button>
+              </div>
+              <div class="eh-list" v-if="estHistory.length">
+                <div class="eh-item" v-for="h in estHistory" :key="h.ts" @click="restoreEstimate(h)">
+                  <span class="eh-region">{{ h.region }}</span>
+                  <span class="eh-desc">{{ h.area }}㎡ · {{ h.rooms }}</span>
+                  <span class="eh-price">{{ h.avg }}<i>万</i></span>
+                </div>
+              </div>
+              <div class="eh-empty" v-else>还没有记录，估一次会自动留在这里</div>
+            </div>
+
+            <div class="est-method">
+              <b>估价是怎么算出来的</b>
+              <ol>
+                <li>取本区在挂房源的真实单价作为基准</li>
+                <li>按面积、装修、朝向、楼层、户型逐项折算系数</li>
+                <li>给出 ±12% 区间与可信度（样本量 + 价格离散度）</li>
+              </ol>
+            </div>
+          </aside>
+
+          <!-- 模块 A：机器学习预测结果 -->
+          <div v-if="mlData && mlData.status === 'ok'" class="ml-result">
+            <div class="ml-header">
+              <div class="ml-title"><svg class="ic"><use href="#i-cpu"></use></svg> 智能估价模型 <small>MLP 神经网络回归 + LSTM 走势预测 · 基于 {{ mlData.metrics.train_size }} 套真实挂牌数据训练</small></div>
+              <div class="ml-badge">R² {{ mlData.metrics.r2 }}</div>
+            </div>
+            <div class="ml-price">
+              <span class="ml-price-value">{{ Math.round(mlData.predicted_price).toLocaleString() }}</span>
+              <span class="ml-price-unit">万</span>
+              <span class="ml-price-range">预测区间 {{ Math.round(mlData.price_min) }} ~ {{ Math.round(mlData.price_max) }} 万</span>
+            </div>
+            <div class="ml-metrics">
+              <div class="ml-metric"><div class="mm-v">{{ mlData.metrics.mae }}</div><div class="mm-k">MAE（万）</div></div>
+              <div class="ml-metric"><div class="mm-v">{{ mlData.metrics.rmse }}</div><div class="mm-k">RMSE（万）</div></div>
+              <div class="ml-metric"><div class="mm-v">{{ mlData.metrics.mape }}%</div><div class="mm-k">MAPE</div></div>
+              <div class="ml-metric"><div class="mm-v">{{ mlData.metrics.train_size }}</div><div class="mm-k">训练样本</div></div>
+            </div>
+            <div class="ml-note">
+              与下方"特征法"口径不同：本模型用全平台房源拟合整体价格规律，特征法用本区在挂房源的真实单价折算。
+              两者差距较大时，说明该区域挂牌报价偏离整体规律，建议以区间下限作为还价起点。
+            </div>
+          </div>
+          <div v-if="mlError" class="ml-error"><svg class="ic"><use href="#i-bot"></use></svg> 机器学习预测不可用：{{ mlError }}</div>
+          <div v-if="estError" class="ml-error"><svg class="ic"><use href="#i-alert"></use></svg> {{ estError }}</div>
+
+          <div v-if="estData" class="estimate-result">
+            <div class="result-header">
+              <div class="price-range">
+                <span class="min">{{ Math.round(estData.estimated_price_min || 0).toLocaleString() }}</span>
+                <span class="sep"> ~ </span>
+                <span class="max">{{ Math.round(estData.estimated_price_max || 0).toLocaleString() }}</span>
+                <span class="unit">万</span>
+              </div>
+              <div class="avg-price">
+                均价约 <b>{{ Math.round(estData.estimated_price_avg || 0).toLocaleString() }}</b> 万
+              </div>
+            </div>
+            <div class="confidence-bar">
+              <div class="confidence-label">
+                <span>可信度</span>
+                <span class="confidence-value">{{ Math.round((estData.confidence || 0) * 100) }}%</span>
+              </div>
+              <div class="confidence-track">
+                <div class="confidence-fill" :style="{width: (estData.confidence || 0) * 100 + '%'}"></div>
+              </div>
+              <div class="confidence-basis" v-if="estData.confidence_basis">{{ estData.confidence_basis }}</div>
+            </div>
+            <div class="result-details">
+              <div class="detail-item">
+                <div class="detail-icon"><svg class="ic"><use href="#i-home"></use></svg></div>
+                <div class="detail-content">
+                  <div class="detail-label">参考房源</div>
+                  <div class="detail-value">{{ estData.similar_houses_count || 0 }} 套同区域在挂房源</div>
+                </div>
+              </div>
+              <div class="detail-item" v-if="estData.lstm_reference_price">
+                <div class="detail-icon"><svg class="ic"><use href="#i-cpu"></use></svg></div>
+                <div class="detail-content">
+                  <div class="detail-label">LSTM 深度学习走势参考</div>
+                  <div class="detail-value">{{ Math.round(estData.lstm_reference_price).toLocaleString() }} 万（{{ estData.lstm_method || 'LSTM 时序预测' }}）</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="estimate-advice" v-if="estData.advice">
+              <div class="advice-icon"><svg class="ic"><use href="#i-bulb"></use></svg></div>
+              <div class="advice-text">{{ estData.advice }}</div>
+            </div>
+          </div>
+
+          <!-- 结果解释区：白底，与上方绿色结论卡分层 -->
+          <div class="est-analysis" v-if="estData">
+            <!-- 房况贡献：每项特征折算成金额，合计 = 估值 - 区域基准价 -->
+            <div class="est-factors" v-if="estData.factors_detail && estData.factors_detail.length">
+              <div class="est-block-head">
+                <b>房况对价格的影响</b>
+                <small>基准 {{ estData.base_unit_price }} 万/㎡ × {{ estForm.area }}㎡ = {{ Math.round(estData.estimated_price_avg - estFactorsTotal) }} 万，逐项调整后得 {{ estData.estimated_price_avg }} 万</small>
+              </div>
+              <div id="estimateFactorsChart" class="est-factors-chart"></div>
+            </div>
+
+            <!-- 市场定位：全部来自本区在挂房源的真实分布 -->
+            <div class="est-market" v-if="estData.market && estData.market.sample_count">
+              <div class="est-block-head">
+                <b>市场定位</b>
+                <small>{{ estData.market.region }} · 在挂样本 {{ estData.market.sample_count }} 套 · 单价分布</small>
+                <span class="est-percentile-chip" v-if="estData.market.percentile !== null">
+                  处于本区第 {{ estData.market.percentile }} 百分位
+                </span>
+              </div>
+
+              <div class="est-scale">
+                <div class="est-scale-track">
+                  <div class="est-scale-fill" :style="{ width: (estData.market.percentile || 0) + '%' }"></div>
+                  <div class="est-scale-dot" :style="{ left: (estData.market.percentile || 0) + '%' }"></div>
+                </div>
+                <div class="est-scale-ticks">
+                  <span>25% 分位 {{ estData.market.unit_p25 }} 万/㎡</span>
+                  <span>中位 {{ estData.market.median_unit_price }} 万/㎡</span>
+                  <span>75% 分位 {{ estData.market.unit_p75 }} 万/㎡</span>
+                </div>
+              </div>
+
+              <div class="est-market-grid">
+                <div class="est-market-item">
+                  <span>你这套的单价</span>
+                  <b>{{ estData.market.your_unit_price }} <i>万/㎡</i></b>
+                </div>
+                <div class="est-market-item">
+                  <span>{{ estData.market.region }}均价</span>
+                  <b>{{ estData.market.avg_unit_price }} <i>万/㎡</i></b>
+                </div>
+                <div class="est-market-item">
+                  <span>本区总价中位数</span>
+                  <b>{{ estData.market.median_total_price }} <i>万</i></b>
+                </div>
+                <div class="est-market-item">
+                  <span>总价 25%~75% 区间</span>
+                  <b>{{ estData.market.total_p25 }} ~ {{ estData.market.total_p75 }} <i>万</i></b>
+                </div>
+              </div>
+            </div>
+
+            <!-- 挂牌价反查：把估算变成还价依据 -->
+            <div class="est-ask">
+              <div class="est-block-head">
+                <b>已经看到报价？核一下</b>
+                <small>输入卖家挂牌价，对比估值给出高估/低估判断</small>
+              </div>
+              <div class="est-ask-row">
+                <input type="number" v-model="askPrice" placeholder="例如 620" @keyup.enter="checkAskPrice">
+                <span class="est-ask-unit">万</span>
+                <button class="btn-primary est-ask-btn" @click="checkAskPrice" :disabled="!askPrice">评估报价</button>
+              </div>
+              <div v-if="askResult" class="est-ask-result" :class="askResult.level">
+                <b>{{ askResult.title }}</b>
+                <span>{{ askResult.text }}</span>
+              </div>
+            </div>
+
+            <div class="estimate-note">
+              <p>* 估算结果仅供参考，实际成交以双方议价为准</p>
+              <p>* 数据来源：本平台 {{ estData.similar_houses_count || 0 }} 套 {{ estData.market && estData.market.region ? estData.market.region : '' }}在挂房源，实时统计</p>
+              <p>* 单价 = 总价 / 面积，已剔除无法解析面积或价格的样本</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 房源详情页（独立页面，不再用弹窗） -->
+      <div v-else-if="tab === 'detail' && detailHouse" class="dp">
+        <div class="dp-crumb">
+          <button class="dp-back" @click="closeHouseDetail">
+            <svg class="ic"><use href="#i-chevron-left"></use></svg> 返回
+          </button>
+          <span class="dp-crumb-path">
+            <span v-if="detailHouse.region">{{ detailHouse.region }}</span>
+            <!-- block 与 region 相同时（脏数据/片区未细分）不重复显示 -->
+            <span v-if="detailHouse.block && detailHouse.block !== detailHouse.region"> · {{ detailHouse.block }}</span>
+            <em>/</em> {{ detailHouse.title }}
+          </span>
+        </div>
+
+        <div class="dp-grid">
+          <div class="dp-main">
+            <div class="dp-hero">
+              <img :src="detailHouse.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="detailHouse.title">
+              <div class="dp-hero-tags">
+                <span v-if="detailHouse.house_type || detailHouse.rent_type">{{ detailHouse.house_type || detailHouse.rent_type }}</span>
+                <span v-if="detailHouse.decoration">{{ detailHouse.decoration }}</span>
+                <span v-if="detailHouse.floor">{{ detailHouse.floor }}</span>
+              </div>
+            </div>
+
+            <h1 class="dp-title">
+              {{ detailHouse.title }}
+              <span class="dp-rating" v-if="commentTotal > 0">
+                <svg class="ic fill"><use href="#i-star-fill"></use></svg> {{ commentAvg }} · {{ commentTotal }} 条评价
+              </span>
+            </h1>
+
+            <div class="dp-facts">
+              <div><b>{{ detailHouse.rooms || '-' }}</b><span>户型</span></div>
+              <div><b>{{ detailHouse.area || '-' }}</b><span>面积</span></div>
+              <div><b>{{ detailHouse.direction || '-' }}</b><span>朝向</span></div>
+              <div><b>{{ detailHouse.build_year || '-' }}</b><span>建成年份</span></div>
+            </div>
+
+            <section class="dp-sec">
+              <h3>房源描述</h3>
+              <p class="dp-text">{{ detailHouse.description || '业主暂未填写描述' }}</p>
+            </section>
+
+            <section class="dp-sec">
+              <h3>小区位置与周边配套</h3>
+              <div class="dp-info-row">
+                <svg class="ic"><use href="#i-map-pin"></use></svg>
+                <span>{{ detailHouse.address || '地址待补充' }}（{{ detailHouse.region }}）</span>
+              </div>
+              <div class="dp-info-row">
+                <svg class="ic"><use href="#i-train"></use></svg>
+                <span>{{ detailHouse.traffic || '暂无交通信息' }}</span>
+              </div>
+
+              <!-- 地图 + 周边设施：数据来自高德 Web 服务（周边搜索） -->
+              <div class="dp-nearby">
+                <div class="dp-nearby-map">
+                  <div id="dpMap" class="dp-map"></div>
+                  <div v-if="!detailHouse.longitude || !detailHouse.latitude" class="dp-map-mask">该房源暂无坐标，无法展示周边地图</div>
+                  <div v-else-if="!nearbyMapReady || nearbyLoading" class="dp-map-mask">
+                    {{ nearbyMapReady ? '周边设施加载中…' : '地图加载中…' }}
+                  </div>
+                </div>
+                <div class="dp-nearby-side">
+                  <div class="dp-nearby-tabs">
+                    <button v-for="t in nearbyTabs" :key="t.key"
+                            :class="{ active: nearbyTab === t.key }"
+                            :style="{ '--c': t.color }"
+                            @click="setNearbyTab(t.key)">
+                      <i class="dp-tab-dot"></i>{{ t.label }}<small>{{ t.items.length }}</small>
+                    </button>
+                  </div>
+                  <ul class="dp-poi-list">
+                    <li v-for="(p, i) in nearbyItems" :key="p.name + i" @click="focusNearby(p)">
+                      <span class="dp-poi-name">{{ p.name }}</span>
+                      <span class="dp-poi-dist">{{ formatDistance(p.distance) }}</span>
+                    </li>
+                    <li v-if="!nearbyItems.length" class="dp-poi-empty">
+                      {{ nearbyLoading ? '加载中…' : '周边暂无此类设施' }}
+                    </li>
+                  </ul>
+                  <div class="dp-nearby-src">周边数据来源：高德 POI · 直线距离</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="dp-sec" v-if="detailHouse.highlights">
+              <h3>房源亮点</h3>
+              <div class="dp-tags">
+                <span v-for="(t, i) in (detailHouse.highlights || '').split(/[、,，]/).filter(Boolean)" :key="i">{{ t }}</span>
+              </div>
+            </section>
+
+            <section class="dp-sec" v-if="detailHouse.facilities">
+              <h3>配套设施</h3>
+              <div class="dp-tags">
+                <span v-for="(f, idx) in (detailHouse.facilities || '').split(/[、,，]/).filter(Boolean)" :key="idx">{{ f }}</span>
+              </div>
+            </section>
+
+            <section class="dp-sec" v-if="detailHouse.matching">
+              <h3>周边配套</h3>
+              <p class="dp-text">{{ detailHouse.matching }}</p>
+            </section>
+
+            <section class="dp-sec">
+              <h3>用户评价</h3>
+
+              <!-- 口碑摘要：NLP 情感分析的业务出口（极性 + 维度归因） -->
+              <div v-if="houseSenti && houseSenti.total" class="dp-senti">
+                <div class="dp-senti-score">
+                  <b>{{ houseSenti.avg_rating }}</b>
+                  <span class="comment-stars-readonly">
+                    <span v-for="n in 5" :key="n" class="star" :class="{ on: n <= Math.round(houseSenti.avg_rating || 0) }"><svg class="ic fill"><use href="#i-star-fill"></use></svg></span>
+                  </span>
+                  <small>{{ houseSenti.total }} 条评价</small>
+                </div>
+                <div class="dp-senti-body">
+                  <div class="dp-senti-head">
+                    <b>{{ houseSenti.label }}</b>
+                    <span class="dp-senti-ratio">
+                      积极 {{ houseSenti.positive_ratio }}% · 中性 {{ houseSenti.neutral_ratio }}% · 消极 {{ houseSenti.negative_ratio }}%
+                    </span>
+                  </div>
+                  <p class="dp-senti-summary">{{ houseSenti.summary }}</p>
+                  <div class="dp-senti-aspects">
+                    <div class="dsa" v-if="houseSenti.highlights && houseSenti.highlights.length">
+                      <span class="dsa-label">好评集中在</span>
+                      <span class="dsa-tag pos" v-for="a in houseSenti.highlights" :key="'p' + a.name" :title="a.count + ' 条评价提到'">{{ a.name }}<em>×{{ a.count }}</em></span>
+                    </div>
+                    <div class="dsa" v-if="houseSenti.issues && houseSenti.issues.length">
+                      <span class="dsa-label">待改进</span>
+                      <span class="dsa-tag neg" v-for="a in houseSenti.issues" :key="'n' + a.name" :title="a.count + ' 条评价提到'">{{ a.name }}<em>×{{ a.count }}</em></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="comments.length" class="comment-list">
+                <div class="comment-item" v-for="c in comments" :key="c.id">
+                  <div class="comment-avatar" :style="commentAvatarStyle(c)">{{ commentAvatar(c) }}</div>
+                  <div class="comment-body">
+                    <div class="comment-head">
+                      <span class="comment-user">{{ c.user_name || '匿名用户' }}</span>
+                      <span class="comment-me" v-if="isMyComment(c)">我</span>
+                      <span class="comment-senti" v-if="c.sentiment"
+                            :class="{pos: c.sentiment === '积极', neg: c.sentiment === '消极'}">{{ c.sentiment }}</span>
+                      <span class="comment-stars-readonly">
+                        <span v-for="n in 5" :key="n" class="star" :class="{ on: n <= Math.round(c.score || 5) }"><svg class="ic fill"><use href="#i-star-fill"></use></svg></span>
+                      </span>
+                      <span class="comment-time">{{ formatCommentTime(c.create_time) }}</span>
+                    </div>
+                    <div class="comment-content">{{ c.content }}</div>
+
+                    <div class="comment-ops">
+                      <button class="comment-op" @click="toggleReply(c)">
+                        {{ replyTargetId === c.id ? '取消回复' : '回复' }}
+                      </button>
+                      <span class="comment-reply-count" v-if="c.replies && c.replies.length">{{ c.replies.length }} 条回复</span>
+                      <button class="comment-op danger" v-if="isMyComment(c)" @click="deleteMyComment(c)">删除</button>
+                    </div>
+
+                    <!-- 楼中楼：单层回复列表 -->
+                    <div class="comment-replies" v-if="c.replies && c.replies.length">
+                      <div class="comment-reply" v-for="r in c.replies" :key="r.id">
+                        <div class="cr-head">
+                          <span class="cr-user">{{ r.user_name }}</span>
+                          <span class="cr-to" v-if="r.reply_to">回复 <b>{{ r.reply_to }}</b></span>
+                          <span class="cr-time">{{ formatCommentTime(r.create_time) }}</span>
+                        </div>
+                        <div class="cr-content">{{ r.content }}</div>
+                        <button class="comment-op cr-op" @click="toggleReply(c, r)">回复</button>
+                      </div>
+                    </div>
+
+                    <div class="comment-reply-editor" v-if="replyTargetId === c.id">
+                      <textarea v-model="replyText" rows="2" maxlength="300"
+                                :placeholder="'回复 @' + (replyToName || c.user_name || '匿名用户') + '：'"></textarea>
+                      <div class="comment-reply-actions">
+                        <span class="cr-err" v-if="replyError">{{ replyError }}</span>
+                        <button class="btn-primary comment-reply-submit" @click="submitReply(c)" :disabled="replyLoading">
+                          {{ replyLoading ? '发送中...' : '发送回复' }}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="comment-empty">还没有评价，来说两句吧</p>
+
+              <div class="comment-more" v-if="commentTotal > comments.length">
+                <button class="btn-outline" @click="loadMoreComments" :disabled="commentLoadingMore">
+                  {{ commentLoadingMore ? '加载中…' : '查看全部 ' + commentTotal + ' 条评价' }}
+                </button>
+              </div>
+
+              <div class="comment-editor">
+                <div class="comment-stars-input">
+                  <span>评分</span>
+                  <span v-for="n in 5" :key="n" class="star clickable"
+                        :class="{ on: n <= commentScore }"
+                        @click="commentScore = n"
+                        :title="n + ' 分'"><svg class="ic fill"><use href="#i-star-fill"></use></svg></span>
+                  <span class="comment-score-num">{{ commentScore }} 分</span>
+                </div>
+                <textarea v-model="commentText" rows="3" maxlength="500"
+                          placeholder="说说这套房子的采光、交通、价格感受…（最多 500 字）"></textarea>
+                <div v-if="commentError" class="form-error">{{ commentError }}</div>
+                <button class="btn-primary comment-submit" @click="submitComment" :disabled="commentLoading">
+                  {{ commentLoading ? '提交中...' : '发表评价' }}
+                </button>
+              </div>
+            </section>
+
+            <section class="dp-sec" v-if="similarHouses.length">
+              <h3>同区域其他房源</h3>
+              <div class="dp-similar">
+                <div class="dp-similar-card" v-for="h in similarHouses" :key="h.id" @click="viewHouse(h)">
+                  <img :src="h.image_url" :alt="h.title" loading="lazy">
+                  <div class="dp-similar-title">{{ h.title }}</div>
+                  <div class="dp-similar-foot">
+                    <b>{{ formatPrice(h.price) }} 万</b>
+                    <span>{{ h.rooms }} · {{ h.area }}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="dp-side">
+            <!-- 价格与行动区：价格 → 成本 → 操作，一屏内完成决策 -->
+            <div class="dp-card dp-price-card">
+              <div class="dp-price-row">
+                <div class="dp-price">{{ formatPrice(detailHouse.price) }}<small>万</small></div>
+                <span class="dp-price-badge" v-if="detailHouse.decoration">{{ detailHouse.decoration }}</span>
+              </div>
+              <div class="dp-price-sub">
+                <span v-if="detailMetrics.perUnit">单价 {{ detailMetrics.perUnit }} 万/㎡</span>
+                <span v-if="detailMetrics.monthly">月供约 {{ detailMetrics.monthly }} 万</span>
+              </div>
+
+              <div class="dp-cost">
+                <div class="dp-cost-item"><span>首付 3 成</span><b>{{ detailMetrics.downPayment || '-' }} 万</b></div>
+                <div class="dp-cost-item"><span>商业贷款</span><b>{{ detailMetrics.loan || '-' }} 万</b></div>
+                <div class="dp-cost-item"><span>贷款方案</span><b>30 年 · 3.85%</b></div>
+              </div>
+
+              <div class="dp-actions">
+                <button class="dp-act" :class="{ on: isFavorited(detailHouse.id) }" @click="toggleFavorite(detailHouse)">
+                  <svg v-if="isFavorited(detailHouse.id)" class="ic fill"><use href="#i-heart-fill"></use></svg>
+                  <svg v-else class="ic"><use href="#i-heart"></use></svg>
+                  {{ isFavorited(detailHouse.id) ? '已收藏' : '收藏' }}
+                </button>
+                <button class="dp-act" :class="{ on: isCompared(detailHouse.id) }" @click="toggleCompare(detailHouse)">
+                  <svg v-if="isCompared(detailHouse.id)" class="ic"><use href="#i-check"></use></svg>
+                  <svg v-else class="ic"><use href="#i-scale"></use></svg>
+                  {{ isCompared(detailHouse.id) ? '已对比' : '加入对比' }}
+                </button>
+              </div>
+              <button class="dp-report-btn" @click="openViewingReport()">
+                <svg class="ic"><use href="#i-sparkles"></use></svg>
+                <span>AI 看房报告</span>
+                <small>图片 · 周边 · 走势 · 估价</small>
+              </button>
+              <button class="btn-primary dp-contact" @click="contactOwner">
+                <svg class="ic"><use href="#i-phone"></use></svg> 联系业主
+              </button>
+              <p class="dp-price-note">月供按 3 成首付、30 年、3.85% 等额本息估算，仅供参考</p>
+            </div>
+
+            <!-- 业主与房源档案 -->
+            <div class="dp-card">
+              <div class="dp-card-title">业主与房源</div>
+              <div class="dp-owner">
+                <div class="dp-owner-avatar">{{ (detailHouse.contact_name || '业').slice(0, 1) }}</div>
+                <div class="dp-owner-info">
+                  <div class="dp-owner-name">{{ detailHouse.contact_name || '业主' }}</div>
+                  <div class="dp-owner-phone">{{ detailHouse.contact_phone || '联系方式待补充' }}</div>
+                </div>
+              </div>
+
+              <div class="dp-divider"></div>
+              <div class="dp-meta-list">
+                <div><span>房源编号</span><b>#{{ detailHouse.id }}</b></div>
+                <div><span>所在区域</span><b>{{ detailHouse.region || '-' }}</b></div>
+                <div v-if="detailHouse.floor"><span>楼栋楼层</span><b>{{ detailHouse.floor }}</b></div>
+                <div v-if="detailHouse.publish_date"><span>发布时间</span><b>{{ detailHouse.publish_date }}</b></div>
+              </div>
+
+              <div class="dp-verify">
+                <svg class="ic"><use href="#i-check"></use></svg>
+                房源信息由发布者填写，平台已做基础核验
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- 知识库（并入 AI 问答页，作为资料来源视图） -->
+      <div v-else-if="tab === 'chat' && chatView === 'kb'">
+        <div class="view-switch-bar">
+          <div class="view-switch">
+            <button class="vs-btn" @click="setChatView('chat')">智能问答</button>
+            <button class="vs-btn active" @click="setChatView('kb')">知识库</button>
+          </div>
+        </div>
+        <div class="section-title">
+          <svg class="ic"><use href="#i-book"></use></svg> 房产知识库
+          <small class="kb-stat-line">AI 已索引 {{ kbStats.document_count }} 篇文档 / {{ kbStats.chunk_count }} 个片段</small>
+        </div>
+
+        <!-- 知识库管理（仅拥有 knowledge:manage 权限的管理员可见） -->
+        <div v-if="canKnowledge" class="kb-admin">
+          <div class="kb-admin-head">
+            <div>
+              <h3><svg class="ic"><use href="#i-folder"></use></svg> 知识库管理</h3>
+              <p>上传的文档会被切分并写入向量库，AI 问答可直接引用；删除后立即失效</p>
+            </div>
+            <div class="kb-admin-stats">
+              <span class="kb-chip">文档 <b>{{ kbStats.document_count }}</b></span>
+              <span class="kb-chip">切片 <b>{{ kbStats.chunk_count }}</b></span>
+              <span class="kb-chip">房源向量 <b>{{ kbStats.house_vectors }}</b></span>
+            </div>
+          </div>
+
+          <div class="kb-upload-row">
+            <label class="btn-outline kb-file-label">
+              <svg class="ic"><use href="#i-file-text"></use></svg> 选择文件
+              <input type="file" ref="kbFileInput" accept=".pdf,.docx,.txt,.md" hidden @change="onKnowledgeFile">
+            </label>
+            <span class="kb-file-name">{{ kbSelectedFile ? kbSelectedFile.name : '支持 pdf / docx / txt / md，单个不超过 50MB' }}</span>
+            <button class="btn-primary" :disabled="!kbSelectedFile || kbUploading" @click="uploadKnowledge">
+              {{ kbUploading ? '上传并索引中...' : '上传并索引' }}
+            </button>
+            <button class="btn-outline" :disabled="kbRebuilding" @click="rebuildHouseIndex">
+              {{ kbRebuilding ? '重建中...' : '重建房源索引' }}
+            </button>
+          </div>
+
+          <div v-if="kbMessage" class="kb-message" :class="kbMessageType">{{ kbMessage }}</div>
+
+          <div class="manage-table-wrap">
+            <table class="manage-table">
+              <thead>
+                <tr>
+                  <th>文件名</th>
+                  <th style="width:80px;">类型</th>
+                  <th style="width:92px;">大小</th>
+                  <th style="width:72px;">切片</th>
+                  <th style="width:78px;">字符数</th>
+                  <th style="width:152px;">上传时间</th>
+                  <th style="width:78px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="d in kbDocs" :key="d.doc_id">
+                  <td class="cell-title" :title="d.filename">{{ d.filename }}</td>
+                  <td>{{ d.file_type }}</td>
+                  <td class="mono">{{ formatFileSize(d.file_size) }}</td>
+                  <td class="mono">{{ d.chunk_count }}</td>
+                  <td class="mono">{{ d.char_count || '-' }}</td>
+                  <td class="mono">{{ d.create_time || '-' }}</td>
+                  <td class="cell-actions">
+                    <button class="btn-mini danger" @click="removeKnowledgeDoc(d)">删除</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-if="kbLoading" class="manage-empty">加载中...</div>
+            <div v-else-if="kbDocs.length === 0" class="manage-empty">还没有上传知识文档，AI 目前只能依据房源数据回答</div>
+          </div>
+
+          <div class="kb-tip">
+            当前分块大小 {{ kbStats.chunk_size }} 字、重叠 {{ kbStats.chunk_overlap }} 字；
+            下方为内置阅读文章（静态内容，不参与向量检索）。
+          </div>
+        </div>
+
+        <!-- 分类筛选 -->
+        <div class="knowledge-categories">
+          <button :class="['cat-btn', {active: knowledgeCat === ''}]" @click="knowledgeCat = ''">
+            全部
+          </button>
+          <button v-for="cat in knowledgeCategories" :key="cat"
+                  :class="['cat-btn', {active: knowledgeCat === cat}]" 
+                  @click="knowledgeCat = cat">
+            {{ cat }}
+          </button>
+        </div>
+
+        <!-- 知识卡片列表 -->
+        <div class="knowledge-grid">
+          <div v-for="doc in filteredKnowledgeDocs" :key="doc.id" 
+               class="doc-card" @click="viewKnowledge(doc)">
+            <div class="doc-icon"><svg class="ic"><use :href="'#i-' + doc.icon"></use></svg></div>
+            <div class="doc-content">
+              <h3>{{ doc.title }}</h3>
+              <p>{{ doc.summary }}</p>
+              <div class="doc-tags">
+                <span v-for="tag in doc.tags" :key="tag" class="doc-tag">{{ tag }}</span>
+              </div>
+              <div class="meta">
+                <span class="cat">{{ doc.category }}</span>
+                <span class="read-time"><svg class="ic"><use href="#i-book"></use></svg> {{ doc.readTime }}分钟阅读</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="filteredKnowledgeDocs.length === 0" class="empty-state">
+          <div class="icon"><svg class="ic"><use href="#i-inbox"></use></svg></div>
+          <h3>暂无相关内容</h3>
+        </div>
+      </div>
+
+      <!-- 知识详情弹窗 -->
+      <div v-if="showKnowledgeDetail" class="modal-mask" @click.self="showKnowledgeDetail = false">
+        <div class="modal knowledge-modal">
+          <button class="modal-close" @click="showKnowledgeDetail = false"><svg class="ic"><use href="#i-x"></use></svg></button>
+          <div class="knowledge-modal-header">
+            <div class="km-icon"><svg class="ic"><use :href="'#i-' + currentKnowledge.icon"></use></svg></div>
+            <div class="km-title">{{ currentKnowledge.title }}</div>
+          </div>
+          <div class="kd-meta">
+            <span class="kd-cat">{{ currentKnowledge.category }}</span>
+            <span><svg class="ic"><use href="#i-book"></use></svg> {{ currentKnowledge.readTime }}分钟阅读</span>
+            <span><svg class="ic"><use href="#i-calendar"></use></svg> {{ currentKnowledge.time }}</span>
+          </div>
+          <div class="kd-content" v-html="currentKnowledge.fullContent"></div>
+          <div class="kd-tags">
+            <span v-for="tag in currentKnowledge.tags" :key="tag" class="kd-tag">#{{ tag }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 浏览历史 -->
+      <div v-else-if="tab === 'history'">
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+          <span><svg class="ic"><use href="#i-clock"></use></svg> 浏览历史 <small style="font-size:13px;color:#999;font-weight:normal;">({{ historyList.length }} 条记录)</small></span>
+          <button v-if="historyList.length > 0" @click.stop="clearHistory" 
+                  style="padding:6px 14px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;color:#666;cursor:pointer;transition:all 0.2s;"
+                  onmouseover="this.style.borderColor='#ff5e00';this.style.color='#ff5e00';"
+                  onmouseout="this.style.borderColor='#e0e0e0';this.style.color='#666';">
+            <svg class="ic"><use href="#i-trash"></use></svg> 清空全部
+          </button>
+        </div>
+        <div v-if="historyList.length === 0" class="empty-state">
+          <div class="icon"><svg class="ic"><use href="#i-clipboard"></use></svg></div>
+          <h3>暂无浏览记录</h3>
+          <p>去看看房源吧</p>
+          <button @click="openFind('list')" style="margin-top:12px;padding:8px 24px;background:#00ae66;color:#fff;border:none;border-radius:20px;cursor:pointer;font-size:13px;">
+            去看房源
+          </button>
+        </div>
+        <div v-else class="history-list">
+          <div v-for="item in historyList" :key="item.history_id || (item.id + '-' + item.browse_time)"
+               class="history-item" @click="viewHouse(item)">
+            <div class="thumb">
+            <img :src="item.image_url || '/static/images/houses/house_01_sanlitun.jpg'" :alt="item.title" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+          </div>
+            <div class="info">
+              <div class="t">{{ item.title }}</div>
+              <div class="d">{{ item.rooms }} · {{ item.area }} · {{ item.address }}</div>
+              <div class="p">{{ item.price }}</div>
+            </div>
+            <div class="time" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+              <span>{{ item.browse_time || item.browseTime || '刚刚' }}</span>
+              <button @click.stop="removeFromHistory(item.id)" 
+                      style="padding:3px 10px;background:#f5f5f5;border:none;border-radius:4px;font-size:11px;color:#999;cursor:pointer;"
+                      onmouseover="this.style.background='#ffebe6';this.style.color='#ff5e00';"
+                      onmouseout="this.style.background='#f5f5f5';this.style.color='#999';">
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 模块 C：房产数据可视化分析大屏 -->
+      <div v-else-if="tab === 'dashboard'">
+        <div class="dash-header">
+          <div>
+            <div class="dash-title"><svg class="ic"><use href="#i-bar-chart"></use></svg> 北京二手房市场数据大屏</div>
+            <div class="dash-sub">全量口径统计 · 区域 / 户型 / 价格 / 朝向多维分析 · 数据科学与大数据技术</div>
+          </div>
+          <div class="dash-meta"><em>全量口径</em><span>缓存 5 分钟</span></div>
+        </div>
+        <div v-if="dashLoading" class="dash-loading">数据加载中...</div>
+        <template v-else-if="dashData && dashData.overview">
+          <div class="dash-cards">
+            <div class="dash-card">
+              <div class="dc-icon"><svg class="ic"><use href="#i-home"></use></svg></div>
+              <div class="dc-value">{{ dashData.overview.total_houses.toLocaleString() }}<span>套</span></div>
+              <div class="dc-label">挂牌房源</div>
+            </div>
+            <div class="dash-card">
+              <div class="dc-icon"><svg class="ic"><use href="#i-yuan"></use></svg></div>
+              <div class="dc-value">{{ dashData.overview.avg_price.toLocaleString() }}<span>万</span></div>
+              <div class="dc-label">区域平均总价</div>
+            </div>
+            <div class="dash-card">
+              <div class="dc-icon"><svg class="ic"><use href="#i-ruler"></use></svg></div>
+              <div class="dc-value">{{ dashData.overview.avg_unit_price }}<span>万/㎡</span></div>
+              <div class="dc-label">平均单价</div>
+            </div>
+            <div class="dash-card">
+              <div class="dc-icon"><svg class="ic"><use href="#i-map"></use></svg></div>
+              <div class="dc-value">{{ dashData.overview.region_count }}<span>个</span></div>
+              <div class="dc-label">覆盖行政区</div>
+            </div>
+          </div>
+          <div class="dash-grid">
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-tag"></use></svg> 区域平均总价 TOP
+                <small class="ct-note">颜色 = 环比涨跌</small>
+              </div>
+              <div id="chartRegion" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-city"></use></svg> 区域均价 × 挂牌量
+                <small class="ct-note">气泡大小 = 挂牌量</small>
+              </div>
+              <div id="chartScatter" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-map"></use></svg> 区域 × 价格段房源密度
+                <small class="ct-note">单位：套</small>
+              </div>
+              <div id="chartHeat" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-bed"></use></svg> 户型分布
+                <small class="ct-note">按在挂套数</small>
+              </div>
+              <div id="chartRoom" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-ruler"></use></svg> 面积分布（帕累托）
+                <small class="ct-note">折线 = 累计占比</small>
+              </div>
+              <div id="chartArea" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-compass"></use></svg> 朝向分布（玫瑰图）
+                <small class="ct-note">扇形面积 = 套数占比</small>
+              </div>
+              <div id="chartDirection" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-building"></use></svg> 各区户型结构占比
+                <small class="ct-note">百分比为区内占比</small>
+              </div>
+              <div id="chartStruct" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-yuan"></use></svg> 价格区间分布
+                <small class="ct-note">单位：套</small>
+              </div>
+              <div id="chartPrice" class="chart"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">
+                <svg class="ic"><use href="#i-building"></use></svg> 热门小区均价 TOP10
+                <small class="ct-note">样本 ≥ 3 套</small>
+              </div>
+              <div id="chartBlock" class="chart"></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- 模块 D 情感分析：已合并到房源详情页「口碑摘要」，不再单独成页 -->
+
+      <!-- 房价（走势视图） -->
+      <div v-else-if="tab === 'price' && priceView === 'trend'">
+        <div class="subview-bar">
+          <div class="subview-tabs">
+            <button class="subview-tab" @click="setPriceView('estimate')">房价估算</button>
+            <button class="subview-tab active" @click="setPriceView('trend')">走势分析</button>
+          </div>
+          <span class="subview-note">历史成交均价与未来 12 个月预测</span>
+        </div>
+        <div class="section-title"><svg class="ic"><use href="#i-trend-up"></use></svg> 房价走势时间序列分析</div>
+        <div class="trend-toolbar">
+          <select v-model="trendRegion" class="trend-select">
+            <option value="" disabled>请选择区域</option>
+            <option v-for="r in trendRegions" :key="r.name" :value="r.name">{{ r.name }}（最新 {{ r.latest_price }} 万）</option>
+          </select>
+          <button class="btn-primary" @click="loadTrend" :disabled="!trendRegion">分析走势</button>
+        </div>
+        <div v-if="trendData && trendData.status === 'ok'" class="trend-body">
+          <div class="trend-metrics">
+            <div class="tm-item"><div class="tm-v">{{ trendData.latest_price }}</div><div class="tm-k">最新均价（万）</div></div>
+            <div class="tm-item">
+              <div class="tm-v" :class="trendData.mom_change >= 0 ? 'up' : 'down'">
+                {{ trendData.mom_change >= 0 ? '↑' : '↓' }} {{ Math.abs(trendData.mom_change) }}%
+              </div>
+              <div class="tm-k">环比上月</div>
+            </div>
+            <div class="tm-item" v-if="trendData.yoy_change !== null && trendData.yoy_change !== undefined">
+              <div class="tm-v" :class="trendData.yoy_change >= 0 ? 'up' : 'down'">
+                {{ trendData.yoy_change >= 0 ? '↑' : '↓' }} {{ Math.abs(trendData.yoy_change) }}%
+              </div>
+              <div class="tm-k">同比去年</div>
+            </div>
+            <div class="tm-item">
+              <div class="tm-v" :class="trendData.predicted_change >= 0 ? 'up' : 'down'">
+                {{ trendData.predicted_change >= 0 ? '↑' : '↓' }} {{ Math.abs(trendData.predicted_change) }}%
+              </div>
+              <div class="tm-k">未来 12 个月预测 {{ trendData.trend }}</div>
+            </div>
+          </div>
+          <div class="chart-box">
+            <div class="chart-title">
+              <svg class="ic"><use href="#i-trend-down"></use></svg> {{ trendData.region }} 历史走势与预测（{{ trendData.method }}）
+              <span class="trend-range">
+                <button :class="{ active: trendRange === '3y' }" @click="setTrendRange('3y')">近 3 年</button>
+                <button :class="{ active: trendRange === '5y' }" @click="setTrendRange('5y')">近 5 年</button>
+                <button :class="{ active: trendRange === 'all' }" @click="setTrendRange('all')">全部历史</button>
+              </span>
+            </div>
+            <div class="trend-range-text">{{ trendRangeText }}</div>
+            <div id="chartTrend" class="chart chart-lg"></div>
+          </div>
+          <!-- 单区深挖：板块 / 小区截面行情（区域横向对比统一放在「数据分析」页） -->
+          <div class="chart-box block-board" v-if="trendBlockList.length">
+            <div class="chart-title">
+              <svg class="ic"><use href="#i-city"></use></svg>
+              {{ trendBlocks.region }} 行情分布
+              <small class="bb-note">
+                本区均价 {{ trendBlocks.region_avg_price }} 万 · 百分比为均价相对本区均价的偏离（条形按平方根缩放，避免豪宅小区压扁其它条目）
+              </small>
+            </div>
+            <div class="bb-tabs">
+              <button :class="{ active: trendBlockMode === 'block' }"
+                      @click="trendBlockMode = 'block'">
+                板块 <em>{{ trendBlocks.block_total }}</em>
+              </button>
+              <button :class="{ active: trendBlockMode === 'community' }"
+                      @click="trendBlockMode = 'community'">
+                热门小区 <em>{{ trendBlocks.community_total }}</em>
+              </button>
+            </div>
+            <div class="bb-list">
+              <div class="bb-row" v-for="b in trendBlockList" :key="b.name">
+                <span class="bb-name">{{ b.name }}</span>
+                <span class="bb-count">{{ b.count }} 套</span>
+                <span class="bb-price">{{ b.avg_price }} 万</span>
+                <span class="bb-bar">
+                  <i :class="b.vs_region_pct >= 0 ? 'up' : 'down'"
+                     :style="{ width: Math.max(3, Math.sqrt(Math.abs(b.vs_region_pct || 0) / trendBlockMaxAbs) * 100) + '%' }"></i>
+                </span>
+                <span class="bb-pct" :class="b.vs_region_pct >= 0 ? 'up' : 'down'">
+                  {{ b.vs_region_pct >= 0 ? '+' : '' }}{{ b.vs_region_pct }}%
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="chart-box" v-else-if="trendBlocks">
+            <div class="chart-title"><svg class="ic"><use href="#i-city"></use></svg> 行情分布</div>
+            <div class="bb-empty">该区域板块与小区样本都不足，暂无可展示的分布数据</div>
+          </div>
+        </div>
+        <div v-else-if="trendError" class="empty-state"><div class="icon"><svg class="ic"><use href="#i-trend-down"></use></svg></div><h3>{{ trendError }}</h3></div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <svg class="ic"><use href="#i-home"></use></svg> 安居乐
+          </div>
+          <p>基于 RAG 的房产智能问答平台，用自然语言替代筛选框，让房源和房产知识可被提问。</p>
+          <p class="footer-meta" v-if="stats.totalHouses">
+            已收录 {{ stats.totalHouses.toLocaleString() }} 套房源 · 覆盖 {{ stats.totalRegions }} 个行政区
+          </p>
+          <p class="footer-meta" v-else>北京房产数据 · 向量检索 + 大模型生成</p>
+        </div>
+        <div class="footer-col">
+          <h4>产品功能</h4>
+          <div class="footer-links">
+            <a @click="switchTab('find')">房源检索</a>
+            <a @click="switchTab('chat')">AI 智能问答</a>
+            <a @click="switchTab('price')">房价估价与走势</a>
+            <a @click="switchTab('dashboard')">数据分析大屏</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>关于数据</h4>
+          <div class="footer-links">
+            <span>小区名称与坐标来自公开信息</span>
+            <span>价格、联系方式为示例数据</span>
+            <span>仅供学习与研究，不构成交易建议</span>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bar">
+        <div class="footer-bar-inner">
+          <span>© 2026 安居乐 · 房产智能问答系统</span>
+          <span>FastAPI · MySQL · ChromaDB · Vue 3</span>
+        </div>
+      </div>
+    </footer>
+
+
+    <!-- AI 看房报告（多模态 Agent 汇总） -->
+    <div v-if="reportOpen" class="modal-mask report-mask" @click.self="reportOpen = false">
+      <div class="modal report-modal">
+        <button class="modal-close" @click="reportOpen = false"><svg class="ic"><use href="#i-x"></use></svg></button>
+        <div class="report-head">
+          <div class="report-title">
+            <svg class="ic"><use href="#i-sparkles"></use></svg>
+            <b>AI 看房报告</b>
+            <span class="report-tag" v-if="reportSub">{{ reportSub }}</span>
+          </div>
+          <div class="report-house" v-if="reportHouseTitle">{{ reportHouseTitle }}</div>
+        </div>
+        <div class="report-body">
+          <div v-if="reportLoading" class="report-loading">
+            <span class="report-spinner"></span>
+            <p>正在汇总房源事实、周边配套、走势预测与模型估价…</p>
+            <small>调度顺序：房源信息 → 周边 POI → LSTM 走势 → 估价模型 → 汇总生成</small>
+          </div>
+          <p v-else-if="reportError" class="report-error">{{ reportError }}</p>
+          <div v-else class="report-text" v-html="reportHtml"></div>
+        </div>
+        <div class="report-foot">
+          <button class="report-btn ghost" @click="openViewingReport(true)" :disabled="reportLoading">重新生成</button>
+          <button class="report-btn primary" @click="copyReportText" :disabled="reportLoading || !reportText">复制报告</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 登录弹窗 -->
+    <div v-if="showLoginModal" class="modal-mask auth-mask" @click.self="showLoginModal = false">
+      <div class="modal auth-modal">
+        <button class="modal-close auth-close" @click="showLoginModal = false"><svg class="ic"><use href="#i-x"></use></svg></button>
+        <aside class="auth-brand">
+          <div class="auth-brand-glow g1"></div>
+          <div class="auth-brand-glow g2"></div>
+          <div class="auth-brand-body">
+            <div class="auth-brand-logo"><span class="auth-brand-icon"><svg class="ic"><use href="#i-home"></use></svg></span> 安居乐</div>
+            <h2>找好房<br>问 AI 就够了</h2>
+            <p class="auth-brand-sub">基于 RAG 的房产智能问答平台</p>
+            <ul class="auth-brand-points">
+              <li><span class="dot"></span>真实房源数据，覆盖北京全部城区</li>
+              <li><span class="dot"></span>AI 房产顾问，随时解答买房疑问</li>
+              <li><span class="dot"></span>收藏 · 对比 · 个性化推荐</li>
+            </ul>
+          </div>
+          <div class="auth-brand-foot">© 2026 安居乐 · 房产智能问答系统</div>
+        </aside>
+        <section class="auth-main">
+          <div class="auth-head">
+            <h3>欢迎回来</h3>
+            <p>登录后继续你的找房之旅</p>
+          </div>
+          <div class="auth-form">
+            <label class="auth-label">用户名</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-user"></use></svg></span>
+              <input type="text" v-model="loginForm.username" placeholder="请输入用户名" autocomplete="off" @keyup.enter="doLogin">
+            </div>
+
+            <label class="auth-label">密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-lock"></use></svg></span>
+              <input :type="pwdVisible.login ? 'text' : 'password'" v-model="loginForm.password"
+                     placeholder="请输入密码" autocomplete="new-password" @keyup.enter="doLogin">
+              <button type="button" class="auth-eye" @click="pwdVisible.login = !pwdVisible.login"
+                      :title="pwdVisible.login ? '隐藏密码' : '显示密码'"
+                      :aria-label="pwdVisible.login ? '隐藏密码' : '显示密码'">
+                <svg v-if="pwdVisible.login" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4l16 16"/>
+                  <path d="M9.9 5.9A10.6 10.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.4 17.4 0 0 1-3.3 4.2"/>
+                  <path d="M6.2 6.4C3.7 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.3 0 2.5-.3 3.6-.8"/>
+                  <path d="M9.8 9.8a3.2 3.2 0 0 0 4.4 4.4"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                  <circle cx="12" cy="12" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="auth-row">
+              <label class="auth-check">
+                <input type="checkbox" v-model="rememberPassword" id="rememberPwd" @change="onRememberPasswordChange">
+                <span>记住密码</span>
+              </label>
+              <span class="auth-link" @click="openPwdFromLogin">修改密码？</span>
+            </div>
+            <p class="auth-hint" style="margin:-6px 0 12px;text-align:left;">勾选后账号密码保存在本机浏览器，公共设备请勿勾选</p>
+
+            <div v-if="loginError" class="form-error">{{ loginError }}</div>
+            <button class="auth-submit" @click="doLogin" :disabled="loginLoading">
+              {{ loginLoading ? '登录中...' : '登 录' }}
+            </button>
+            <div class="auth-footer">
+              还没有账号？<span class="link" @click="showLoginModal = false; showRegisterModal = true;">立即注册</span>
+            </div>
+            <p class="auth-hint">管理员账号同样在此登录，登录后自动显示「房源管理」入口</p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 滑块拼图验证弹窗：点「登录」后才出现 -->
+    <div v-if="showCaptchaModal" class="modal-mask captcha-mask" @click.self="closeCaptchaModal">
+      <div class="modal captcha-modal">
+        <div class="captcha-head">
+          <div>
+            <h3>安全验证</h3>
+            <p>{{ captchaPurpose === 'register' ? '拖动滑块完成验证，随后自动继续注册' : '拖动滑块完成验证，随后自动继续登录' }}</p>
+          </div>
+          <button type="button" class="captcha-close" aria-label="关闭验证" @click="closeCaptchaModal">
+            <svg class="ic"><use href="#i-x"></use></svg>
+          </button>
+        </div>
+        <div class="captcha-body">
+          <div class="captcha-stage" ref="captchaStageRef">
+            <canvas ref="captchaBgRef" class="captcha-bg"></canvas>
+            <canvas ref="captchaPieceRef" class="captcha-piece"
+                    :style="{ left: captchaPieceX + 'px', top: captchaPieceY + 'px' }"></canvas>
+            <div class="captcha-loading" v-if="captchaLoading">图片加载中…</div>
+            <button type="button" class="captcha-refresh" title="看不清？换一张" @click="initCaptcha">
+              <svg class="ic"><use href="#i-refresh"></use></svg>
+            </button>
+          </div>
+          <div class="captcha-bar" :class="captchaState" ref="captchaBarRef">
+            <div class="captcha-fill" :style="{ width: (captchaOffset + 42) + 'px' }"></div>
+            <div class="captcha-handle" ref="captchaHandleRef"
+                 :style="{ transform: 'translateX(' + captchaOffset + 'px)' }"
+                 @pointerdown="onCaptchaDown">
+              <svg v-if="captchaState === 'success'" class="ic"><use href="#i-check"></use></svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6.5 5.5 5.5-5.5 5.5"/></svg>
+            </div>
+            <span class="captcha-bar-text">{{ captchaBarText }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div v-if="showPwdModal" class="modal-mask auth-mask" @click.self="showPwdModal = false">
+      <div class="modal auth-modal">
+        <button class="modal-close auth-close" @click="showPwdModal = false"><svg class="ic"><use href="#i-x"></use></svg></button>
+        <aside class="auth-brand">
+          <div class="auth-brand-glow g1"></div>
+          <div class="auth-brand-glow g2"></div>
+          <div class="auth-brand-body">
+            <div class="auth-brand-logo"><span class="auth-brand-icon"><svg class="ic"><use href="#i-key"></use></svg></span> 安全中心</div>
+            <h2>定期更换密码<br>守护账号安全</h2>
+            <p class="auth-brand-sub">修改成功后请使用新密码重新登录</p>
+            <ul class="auth-brand-points">
+              <li><span class="dot"></span>至少 6 位字符</li>
+              <li><span class="dot"></span>建议字母 + 数字 + 符号组合</li>
+              <li><span class="dot"></span>不要与其他网站使用相同密码</li>
+            </ul>
+          </div>
+          <div class="auth-brand-foot">© 2026 安居乐 · 账号安全</div>
+        </aside>
+        <section class="auth-main">
+          <div class="auth-head">
+            <h3>修改密码</h3>
+            <p>{{ isAdmin ? '管理员账号' : '当前账号' }}：{{ displayName }}</p>
+          </div>
+          <div class="auth-form">
+            <label class="auth-label">原密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-lock"></use></svg></span>
+              <input :type="pwdVisible.old ? 'text' : 'password'" v-model="pwdForm.old_password"
+                     placeholder="请输入当前密码" autocomplete="current-password" @keyup.enter="doChangePassword">
+              <button type="button" class="auth-eye" @click="pwdVisible.old = !pwdVisible.old"
+                      :title="pwdVisible.old ? '隐藏密码' : '显示密码'"
+                      :aria-label="pwdVisible.old ? '隐藏密码' : '显示密码'">
+                <svg v-if="pwdVisible.old" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4l16 16"/>
+                  <path d="M9.9 5.9A10.6 10.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.4 17.4 0 0 1-3.3 4.2"/>
+                  <path d="M6.2 6.4C3.7 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.3 0 2.5-.3 3.6-.8"/>
+                  <path d="M9.8 9.8a3.2 3.2 0 0 0 4.4 4.4"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                  <circle cx="12" cy="12" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+
+            <label class="auth-label">新密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-sparkles"></use></svg></span>
+              <input :type="pwdVisible.new ? 'text' : 'password'" v-model="pwdForm.new_password"
+                     placeholder="至少 6 位，建议字母 + 数字" autocomplete="new-password" @keyup.enter="doChangePassword">
+              <button type="button" class="auth-eye" @click="pwdVisible.new = !pwdVisible.new"
+                      :title="pwdVisible.new ? '隐藏密码' : '显示密码'"
+                      :aria-label="pwdVisible.new ? '隐藏密码' : '显示密码'">
+                <svg v-if="pwdVisible.new" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4l16 16"/>
+                  <path d="M9.9 5.9A10.6 10.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.4 17.4 0 0 1-3.3 4.2"/>
+                  <path d="M6.2 6.4C3.7 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.3 0 2.5-.3 3.6-.8"/>
+                  <path d="M9.8 9.8a3.2 3.2 0 0 0 4.4 4.4"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                  <circle cx="12" cy="12" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+            <div v-if="pwdForm.new_password" class="pwd-meter">
+              <span class="pwd-meter-track"><span class="pwd-meter-fill" :class="pwdStrength.cls" :style="{width: (pwdStrength.level * 25) + '%'}"></span></span>
+              <span class="pwd-meter-text" :class="pwdStrength.cls">强度：{{ pwdStrength.text }}</span>
+            </div>
+
+            <label class="auth-label">确认新密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-check-circle"></use></svg></span>
+              <input type="password" v-model="pwdForm.confirm_password"
+                     placeholder="请再次输入新密码" autocomplete="new-password" @keyup.enter="doChangePassword">
+            </div>
+
+            <div v-if="pwdError" class="form-error">{{ pwdError }}</div>
+            <div v-if="pwdSuccess" class="pwd-success">{{ pwdSuccess }}</div>
+            <button class="auth-submit" @click="doChangePassword" :disabled="pwdLoading">
+              {{ pwdLoading ? '提交中...' : '确认修改' }}
+            </button>
+            <p class="auth-hint" v-if="isAdmin">管理员修改密码后需要用新密码重新登录</p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div v-if="showRegisterModal" class="modal-mask auth-mask" @click.self="showRegisterModal = false">
+      <div class="modal auth-modal">
+        <button class="modal-close auth-close" @click="showRegisterModal = false"><svg class="ic"><use href="#i-x"></use></svg></button>
+        <aside class="auth-brand">
+          <div class="auth-brand-glow g1"></div>
+          <div class="auth-brand-glow g2"></div>
+          <div class="auth-brand-body">
+            <div class="auth-brand-logo"><span class="auth-brand-icon"><svg class="ic"><use href="#i-sparkles"></use></svg></span> 加入安居乐</div>
+            <h2>注册即可<br>解锁全部功能</h2>
+            <p class="auth-brand-sub">几秒钟创建账号，开启智能找房</p>
+            <ul class="auth-brand-points">
+              <li><span class="dot"></span>收藏心仪房源，随时回看</li>
+              <li><span class="dot"></span>多套房源横向对比</li>
+              <li><span class="dot"></span>基于行为的个性化推荐</li>
+            </ul>
+          </div>
+          <div class="auth-brand-foot">© 2026 安居乐 · 房产智能问答系统</div>
+        </aside>
+        <section class="auth-main">
+          <div class="auth-head">
+            <h3>创建账号</h3>
+            <p>加入安居乐，享受更多房源服务</p>
+          </div>
+          <div class="auth-form">
+            <label class="auth-label">用户名</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-user"></use></svg></span>
+              <input type="text" v-model="registerForm.username" placeholder="请输入用户名（3-20 字符）" autocomplete="username">
+            </div>
+
+            <label class="auth-label">邮箱</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-mail"></use></svg></span>
+              <input type="email" v-model="registerForm.email" placeholder="请输入邮箱（选填）" autocomplete="email">
+            </div>
+
+            <label class="auth-label">密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-lock"></use></svg></span>
+              <input :type="pwdVisible.register ? 'text' : 'password'" v-model="registerForm.password"
+                     placeholder="请输入密码（6 位以上）" autocomplete="new-password">
+              <button type="button" class="auth-eye" @click="pwdVisible.register = !pwdVisible.register"
+                      :title="pwdVisible.register ? '隐藏密码' : '显示密码'"
+                      :aria-label="pwdVisible.register ? '隐藏密码' : '显示密码'">
+                <svg v-if="pwdVisible.register" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4l16 16"/>
+                  <path d="M9.9 5.9A10.6 10.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17.4 17.4 0 0 1-3.3 4.2"/>
+                  <path d="M6.2 6.4C3.7 8.4 2.5 12 2.5 12S6 18.5 12 18.5c1.3 0 2.5-.3 3.6-.8"/>
+                  <path d="M9.8 9.8a3.2 3.2 0 0 0 4.4 4.4"/>
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/>
+                  <circle cx="12" cy="12" r="3.2"/>
+                </svg>
+              </button>
+            </div>
+
+            <label class="auth-label">确认密码</label>
+            <div class="auth-input">
+              <span class="auth-input-icon"><svg class="ic"><use href="#i-check-circle"></use></svg></span>
+              <input type="password" v-model="registerForm.confirmPassword" placeholder="请再次输入密码"
+                     autocomplete="new-password" @keyup.enter="doRegister">
+            </div>
+
+            <div v-if="registerError" class="form-error">{{ registerError }}</div>
+            <button class="auth-submit" @click="doRegister" :disabled="registerLoading">
+              {{ registerLoading ? '注册中...' : '注册并登录' }}
+            </button>
+            <div class="auth-footer">
+              已有账号？<span class="link" @click="showRegisterModal = false; showLoginModal = true;">立即登录</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- 房源详情已改为独立页面（tab === 'detail'），弹窗实现已移除 -->
+  </div>
+
+  <!-- 本地脚本：API 请求层 + 业务逻辑 -->
+  <script src="/static/js/api.js?v=20261021c"></script>
+  <script src="/static/js/main.js?v=20261117a"></script>
+</body>
+</html>

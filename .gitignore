@@ -1,0 +1,54 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+venv/
+.venv/
+.pytest_cache/
+.mypy_cache/
+
+# ---- 密钥与本地配置（绝不能提交）----
+.env
+.env.bak
+.env.*.bak
+*.pem
+*.key
+
+# ---- IDE / Agent 工具数据（含会话记录，勿公开）----
+.codebuddy/
+.idea/
+.vscode/
+
+# ---- 运行时产物 ----
+*.log
+logs/
+*.pid
+
+# ---- 大体积 / 可重建的数据 ----
+# 向量库可由 scripts/rebuild_vector_store.py 重建，不必进仓库（275MB）
+data/vector_db/*
+!data/vector_db/.gitkeep
+data/vector_db.bak/
+# 上传的知识库文档（用户/管理员私有内容）
+data/documents/*
+!data/documents/.gitkeep
+# 原始房源数据集 32.6MB：可公开（已在 README 注明来源与学术用途），
+# 但含房东姓名/电话的原表必须排除，只公开脱敏副本 mysql_house_data_public.csv
+data/datasets/mysql_house_data.csv
+data/datasets/*.xlsx
+# 训练/统计产生的模型文件
+data/models/
+
+# ---- 内部文档（课程材料与个人材料，不进公开仓库）----
+docs/项目讲解与应答指南.md
+docs/项目讲解精简版.md
+docs/*选题*.md
+docs/深度学习与项目实践.html
+docs/*.docx
+
+# ---- 系统 ----
+.DS_Store
+Thumbs.db
