@@ -1678,7 +1678,13 @@ const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
         function ensureNearbyMap() {
           const el = document.getElementById('dpMap');
           if (!el || !detailHouse.value) return false;
-          if (typeof AMap === 'undefined') { setTimeout(ensureNearbyMap, 200); return false; }
+          if (typeof AMap === 'undefined') {
+            // 用户可能没进过「地图找房」，SDK 尚未注入。这里主动拉起一次
+            // （loadAmapSdk 内部幂等），否则详情页周边地图会一直停在「地图加载中」。
+            loadAmapSdk();
+            setTimeout(ensureNearbyMap, 200);
+            return false;
+          }
           if (window._dpMap) return true;
           const lng = parseFloat(detailHouse.value.longitude);
           const lat = parseFloat(detailHouse.value.latitude);
@@ -1692,7 +1698,15 @@ const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
             resizeEnable: true,
           });
           window._dpMap = map;
-          map.on('complete', function () { nearbyMapReady.value = true; });
+          map.on('complete', function () {
+            nearbyMapReady.value = true;
+            // 周边数据可能比 SDK 先到（进详情页时 SDK 才开始异步加载），
+            // 那样 loadHouseDetail 里的 renderNearbyPois 会因为地图还没建好被跳过，
+            // 这里在切片就绪后补画一次，避免「有列表没标记」。
+            if (nearbyCategories.value.some(c => c.items && c.items.length)) {
+              renderNearbyPois(map);
+            }
+          });
           // 房源定位：气泡只是标注，真正的坐标点用绿点 + 脉冲圈钉在房屋位置上
           window._dpHouseMarker = new AMap.Marker({
             position: [lng, lat],

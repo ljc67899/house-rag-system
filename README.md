@@ -37,13 +37,27 @@
 
 ### 界面截图
 
-| 首页 | 数据大屏 |
-|---|---|
-| ![首页](docs/images/home_verify.png) | ![数据大屏](docs/images/dash_grid.png) |
+**首页**
 
-| 区域行情 | 板块走势 |
-|---|---|
-| ![区域行情](docs/images/dash_region.png) | ![板块走势](docs/images/trend_blocks.png) |
+![首页](docs/images/home.png)
+
+**AI 问答：Supervisor 路由到「房源检索」专家，回答带来源引用**
+
+![AI 问答](docs/images/chat-agent.png)
+
+**AI 看房报告：估价区间 / 区域分位 / LSTM 走势 / POI 距离，六段式汇总**
+
+![AI 看房报告](docs/images/viewing-report.png)
+
+**周边配套：高德 POI 地图与分类列表双向联动**
+
+![周边配套地图](docs/images/map-surroundings.png)
+
+**数据分析大屏**
+
+![数据大屏](docs/images/dash_grid.png)
+
+![区域行情与板块走势](docs/images/trend_blocks.png)
 
 检索效果与消融对比见 `docs/eval_report_v8.md`。
 
@@ -655,6 +669,8 @@ python run.py
 | 9 | 重启等待 ~100s | 启动加载嵌入模型 + 校验索引 | 后台启动 + 日志重定向 + 端口确认 |
 | 10 | 文案与半径不符 | UI 写"2 公里"，实际 `radius=1500` | 统一为「周边暂无此类设施」 |
 | 11 | 无坐标房源地图空白 | 建图函数直接 return | 空态提示「该房源暂无坐标」 |
+| 12 | 详情页周边地图一直「加载中」 | `ensureNearbyMap` 只重试不加载 SDK；没进过「地图找房」时 SDK 从未注入 | 建图前主动调一次 `loadAmapSdk()`（幂等） |
+| 13 | 有 POI 列表但地图上没有标记 | 周边数据先于 SDK 就绪，`renderNearbyPois` 因 `_dpMap` 尚未创建被跳过 | 地图 `complete` 回调里补画一次 |
 
 三条结论：
 
